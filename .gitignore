@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev/debug scripts (not needed in production)
+test-*.js
+fix-*.js
+apply-*.js
+strip-bom.js
+get-error.js
+build-project.ps1
+*-error.html
+temp-*.html

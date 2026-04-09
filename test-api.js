@@ -1,1 +1,0 @@
-fetch('http://localhost:3000/api/products?region=CAD').then(r=>r.text()).then(t => { try { console.log(JSON.parse(t).meta.total) } catch(e) { console.log('Response:', t.slice(0, 500)) } }).catch(console.error)
