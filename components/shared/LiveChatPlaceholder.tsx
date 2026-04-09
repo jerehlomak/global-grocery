@@ -3,9 +3,9 @@
 import Script from 'next/script'
 
 const ORG_ID = '00Dd200000gnjBt'
-const ESW_NAME = 'JayTech_Enhanced'
+const ESW_NAME = 'Jay_Web_Chat'
 const ESW_URL =
-  'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.site.com/ESWJayTechEnhanced1775629878597'
+  'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.site.com/ESWJayWebChat1775709560298'
 const SCRT_URL =
   'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.salesforce-scrt.com'
 
