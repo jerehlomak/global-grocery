@@ -2,18 +2,10 @@
 
 import Script from 'next/script'
 
-declare global {
-  interface Window {
-    embeddedservice_bootstrap: {
-      settings: { language: string }
-      init: (orgId: string, name: string, url: string, config: { scrt2URL: string }) => void
-    }
-  }
-}
 
 const ORG_ID      = '00Dd200000gnjBt'
-const ESW_NAME    = 'JayTech_Enhanced'
-const ESW_URL     = 'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.site.com/ESWJayTechEnhanced1775629878597'
+const ESW_NAME    = 'Global_Grocery'
+const ESW_URL     = 'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.site.com/ESWGlobalGrocery1775717610105'
 const SCRT_URL    = 'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.salesforce-scrt.com'
 const BOOTSTRAP_SRC = `${ESW_URL}/assets/js/bootstrap.min.js`
 

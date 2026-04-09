@@ -182,10 +182,10 @@ export default function HomePage() {
         <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: 400, height: 400, background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: 320, height: 320, background: 'radial-gradient(circle, rgba(79,70,229,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-        <div className="mobile-grid-1" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 72, alignItems: 'center' }}>
+        <div className="flex flex-col md:flex-row max-w-[1200px] mx-auto gap-[72px] items-center w-full">
 
           {/* Left copy */}
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <motion.div className="w-full md:w-1/2" initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 20, padding: '6px 16px', marginBottom: 28 }}>
               <Rocket size={13} color="#a78bfa" />
               <span style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600 }}>Sales Cloud Pipeline</span>
@@ -213,6 +213,7 @@ export default function HomePage() {
 
           {/* Right form card */}
           <motion.div
+            className="w-full md:w-1/2"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}

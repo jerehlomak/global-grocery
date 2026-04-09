@@ -5,23 +5,24 @@ import { sfFetch } from '@/lib/salesforce/client'
 import type { SFPriceBookEntry } from '@/types/salesforce'
 import type { Product } from '@/types/product'
 
-const FAMILY_IMAGES: Record<string, string> = {
-  'Grains & Cereals': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80',
-  'Oils & Condiments': 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80',
-  'Beverages': 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=80',
-  'Spreads & Sweeteners': 'https://images.unsplash.com/photo-1587049352847-81a56d773cee?w=400&q=80',
-  'Seafood': 'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?w=400&q=80',
-  'Dairy': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400&q=80',
-  'Fruits & Vegetables': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80',
-  'Bakery': 'https://images.unsplash.com/photo-1549931319-a545dcf3bc7b?w=400&q=80',
-  'default': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
-}
+// const FAMILY_IMAGES: Record<string, string> = {
+//   'Grains & Cereals': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80',
+//   'Oils & Condiments': 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80',
+//   'Beverages': 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=80',
+//   'Spreads & Sweeteners': 'https://images.unsplash.com/photo-1587049352847-81a56d773cee?w=400&q=80',
+//   'Seafood': 'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?w=400&q=80',
+//   'Dairy': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400&q=80',
+//   'Fruits & Vegetables': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80',
+//   'Bakery': 'https://images.unsplash.com/photo-1549931319-a545dcf3bc7b?w=400&q=80',
+//   'default': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
+// }
 
-function getImage(family: string): string {
-  return FAMILY_IMAGES[family] || FAMILY_IMAGES.default
-}
+// function getImage(family: string): string {
+//   return FAMILY_IMAGES[family] || FAMILY_IMAGES.default
+// }
 
 function entriesToProducts(entries: SFPriceBookEntry[]): Product[] {
+  const image = ''
   return entries.map((entry) => {
     // Determine image from either Salesforce custom field or fallback
     const salesforceImage = entry.Product2.DisplayUrl as string | undefined
@@ -31,7 +32,7 @@ function entriesToProducts(entries: SFPriceBookEntry[]): Product[] {
       productCode: entry.Product2.ProductCode,
       description: entry.Product2.Description,
       family: entry.Product2.Family,
-      imageUrl: salesforceImage || getImage(entry.Product2.Family),
+      imageUrl: salesforceImage || image as string,
       isActive: entry.Product2.IsActive,
       unitPrice: entry.UnitPrice,
       currency: entry.CurrencyIsoCode,
@@ -145,7 +146,7 @@ export async function GET(request: NextRequest) {
       }
     })
     const deduplicatedRecords = Array.from(uniqueRecordsMap.values())
-    
+
     // Apply limit and offset in JS since we had to deduplicate
     const paginatedRecords = deduplicatedRecords.slice(offset, offset + limit)
 
