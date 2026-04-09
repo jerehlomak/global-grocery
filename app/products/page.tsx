@@ -73,13 +73,13 @@ export default function ProductsPage() {
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ fontFamily: 'Outfit, sans-serif', fontSize: 36, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>
           Our Products
         </motion.h1>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div className="mobile-col mobile-stack mobile-text-center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <p style={{ color: '#64748b', fontSize: 16 }}>{Object.values(filtered).flat().length} products  Current pricing currency is selected below</p>
           <LastSynced timestamp={lastSynced} source="mock" onRefresh={load} />
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="mobile-col mobile-stack" style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap', alignItems: 'center' }}>
         <RegionPricingToggle />
         <div style={{ flex: 1, minWidth: 240, position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
@@ -99,7 +99,7 @@ export default function ProductsPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
         {loading && page === 1 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
+          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         )
@@ -111,7 +111,7 @@ export default function ProductsPage() {
           ) : Object.entries(filtered).map(([category, items]) => (
             <div key={category}>
               <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', marginBottom: 20 }}>{category}</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
+              <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
                 {items.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
               </div>
             </div>

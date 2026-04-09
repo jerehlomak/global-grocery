@@ -69,7 +69,7 @@ export default function HomePage() {
               Salesforce-driven sales flows, and a seamless B2B/B2C experience.
             </p>
 
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="mobile-col mobile-w-full" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/products" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#4f46e5', color: 'white', borderRadius: 12, padding: '14px 28px', textDecoration: 'none', fontWeight: 600, fontSize: 16, boxShadow: '0 4px 20px rgba(79,70,229,0.25)' }}>
                 Explore Products <ArrowRight size={16} />
               </Link>
@@ -80,7 +80,7 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, maxWidth: 800, margin: '64px auto 0' }}>
+            className="mobile-grid-2 mobile-grid-gap-sm" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, maxWidth: 800, margin: '64px auto 0' }}>
             {STATS.map((stat, i) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 + i * 0.1 }}
                 style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 16px', textAlign: 'center', backdropFilter: 'blur(10px)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -124,7 +124,7 @@ export default function HomePage() {
       {/*  FEATURED PRODUCTS  */}
       <section style={{ maxWidth: 1280, margin: '80px auto', padding: '0 24px' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
+          <div className="mobile-col mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 40 }}>
             <div>
               <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 32, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Featured Products</h2>
               <p style={{ color: '#64748b' }}>Live data from Salesforce • Current region pricing</p>
@@ -148,7 +148,7 @@ export default function HomePage() {
             </h2>
             <p style={{ color: '#64748b', maxWidth: 500, margin: '0 auto', fontSize: 16 }}>Every interaction powers the world\'s #1 CRM platform</p>
           </motion.div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24 }}>
+          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24 }}>
             {[
               { icon: TrendingUp, title: 'Sales Cloud', desc: 'Lead-to-Order lifecycle, Sales Path, Quotes, Opportunities & Contracts.', color: '#4f46e5', bg: '#ede9fe' },
               { icon: ShieldCheck, title: 'Service Cloud', desc: 'Web-to-Case, Email-to-Case, and Embedded Service Chat for enterprise support.', color: '#059669', bg: '#d1fae5' },
@@ -182,7 +182,7 @@ export default function HomePage() {
         <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: 400, height: 400, background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: 320, height: 320, background: 'radial-gradient(circle, rgba(79,70,229,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 72, alignItems: 'center' }}>
+        <div className="mobile-grid-1" style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 72, alignItems: 'center' }}>
 
           {/* Left copy */}
           <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>

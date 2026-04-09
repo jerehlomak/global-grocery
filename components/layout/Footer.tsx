@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer style={{ borderTop: '1px solid #e2e8f0', background: '#f8f9fc', padding: '48px 24px 24px', marginTop: 80 }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 48 }}>
+        <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 48 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -34,7 +34,7 @@ export default function Footer() {
             ))}
           </div>
         </div>
-        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="mobile-col mobile-stack" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ color: '#94a3b8', fontSize: 12 }}> 2026 GlobalGrocer. All rights reserved. Powered by Salesforce.</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#059669', display: 'inline-block' }}></span>

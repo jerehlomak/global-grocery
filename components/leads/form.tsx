@@ -133,7 +133,7 @@ export default function WebToLeadForm() {
       <input type="hidden" name="lead_source" value="Web" />
 
       {/* Name row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {/* First Name */}
         <div>
           <label htmlFor="lead_first_name" style={labelStyle}>First Name</label>
@@ -218,7 +218,7 @@ export default function WebToLeadForm() {
       </div>
 
       {/* City + Country row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
           <label htmlFor="lead_city" style={labelStyle}>City</label>
           <div style={{ position: 'relative' }}>

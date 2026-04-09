@@ -89,4 +89,34 @@ body {
 @media (max-width: 768px) {
   .desktop-nav, .desktop-actions { display: none !important; }
   .mobile-menu-btn, .mobile-cart-btn { display: flex !important; }
+  
+  /* Flex Layout Utilities */
+  .mobile-col { flex-direction: column !important; }
+  .mobile-col-reverse { flex-direction: column-reverse !important; }
+  .mobile-stack > * { margin-bottom: 1rem !important; }
+  .mobile-stack > *:last-child { margin-bottom: 0 !important; }
+  
+  /* Grid Layout Utilities */
+  .mobile-grid-1 { grid-template-columns: 1fr !important; }
+  .mobile-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .mobile-grid-gap-sm { gap: 1rem !important; }
+  
+  /* Spacing/Sizing */
+  .mobile-pad { padding-left: 16px !important; padding-right: 16px !important; }
+  .mobile-pad-y { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+  .mobile-w-full { width: 100% !important; max-width: 100% !important; }
+  .mobile-h-auto { height: auto !important; min-height: unset !important; }
+  
+  /* Typography Alignments */
+  .mobile-text-center { text-align: center !important; }
+  .mobile-text-left { text-align: left !important; }
+  
+  /* Margins */
+  .mobile-mt-4 { margin-top: 1rem !important; }
+  .mobile-mb-4 { margin-bottom: 1rem !important; }
+  .mobile-mb-8 { margin-bottom: 2rem !important; }
+  
+  /* Visibility */
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
 }
