@@ -249,10 +249,24 @@ export default function HomePage() {
         <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: 400, height: 400, background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: 320, height: 320, background: 'radial-gradient(circle, rgba(79,70,229,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-        <div className="flex flex-col md:flex-row max-w-[1200px] mx-auto gap-[72px] items-center w-full">
+        <style>{`
+          .web-to-lead-inner {
+            display: flex;
+            flex-direction: row;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 72px;
+            align-items: center;
+            width: 100%;
+          }
+          @media (max-width: 768px) {
+            .web-to-lead-inner { flex-direction: column; gap: 40px; }
+          }
+        `}</style>
+        <div className="web-to-lead-inner">
 
           {/* Left copy */}
-          <motion.div className="w-full md:w-1/2" initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <motion.div style={{ flex: 1, minWidth: 0 }} initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 20, padding: '6px 16px', marginBottom: 28 }}>
               <Rocket size={13} color="#a78bfa" />
               <span style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600 }}>Sales Cloud Pipeline</span>
@@ -280,19 +294,11 @@ export default function HomePage() {
 
           {/* Right form card */}
           <motion.div
-            className="w-full md:w-1/2"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 20,
-              padding: 36,
-              boxShadow: '0 25px 60px rgba(0,0,0,0.4)',
-            }}
+            style={{ flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 36, boxShadow: '0 25px 60px rgba(0,0,0,0.4)' }}
           >
             <div style={{ marginBottom: 28 }}>
               <h3 style={{ color: '#fff', fontWeight: 700, fontSize: 20, marginBottom: 6 }}>Get in Touch</h3>
