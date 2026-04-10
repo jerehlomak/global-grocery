@@ -44,7 +44,7 @@ export default function CartDrawer() {
                     {items.map(item => (
                       <motion.div key={item.productId} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 20 }}
                         style={{ background: '#f8f9fc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12, display: 'flex', gap: 12 }}>
-                        <img src={item.imageUrl} alt={item.name} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+                        <img src={item.imageUrl || '/placeholder-product.png'} alt={item.name} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
                         <div style={{ flex: 1 }}>
                           <p style={{ color: '#0f172a', fontWeight: 500, fontSize: 13, marginBottom: 4 }}>{item.name}</p>
                           <p style={{ color: '#4f46e5', fontWeight: 700, fontSize: 14 }}>{fmt(item.unitPrice, item.currency)}</p>

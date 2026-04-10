@@ -2,7 +2,7 @@ export interface CartItem {
   productId: string
   priceBookEntryId: string
   name: string
-  imageUrl: string
+  imageUrl: string | null
   unitPrice: number
   currency: string
   quantity: number

@@ -60,7 +60,7 @@ export default function ProductDetailPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 450px) 1fr', gap: 60, alignItems: 'start' }}>
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 24, overflow: 'hidden', padding: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
-          <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: 'auto', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 16 }} />
+          <img src={product.imageUrl || '/placeholder-product.png'} alt={product.name} style={{ width: '100%', height: 'auto', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 16 }} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
