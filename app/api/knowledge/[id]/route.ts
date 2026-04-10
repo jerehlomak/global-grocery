@@ -3,13 +3,11 @@ import { apiSuccess, apiError, isMockMode } from '@/lib/api/helpers'
 import { sfFetch, sfQuery } from '@/lib/salesforce/client'
 import { MOCK_KNOWLEDGE_ARTICLES } from '@/lib/salesforce/mock-data'
 
-export async function GET(request: NextRequest, context: { params: any }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Resolve params securely allowing compatibility with Next.js 15 async params structure
-    const params = await context.params;
-    const id = params.id;
+    const { id } = await params;
     if (isMockMode()) {
-      const article = MOCK_KNOWLEDGE_ARTICLES.find(a => a.Id === params.id)
+      const article = MOCK_KNOWLEDGE_ARTICLES.find(a => a.Id === id)
       if (!article) return apiError('Article not found', 404)
       return apiSuccess({
         ...article,
@@ -19,7 +17,7 @@ export async function GET(request: NextRequest, context: { params: any }) {
     }
 
     // LIVE SF: Fetch the complete record dynamically using sfQuery to bypass REST routing Version 404s
-    const query = `SELECT Id, Title, Summary, Question__c, Answer__c, CreatedById, FirstPublishedDate, CreatedDate FROM Knowledge__kav WHERE Id = '${params.id}' LIMIT 1`
+    const query = `SELECT Id, Title, Summary, Question__c, Answer__c, CreatedById, FirstPublishedDate, CreatedDate FROM Knowledge__kav WHERE Id = '${id}' LIMIT 1`
     const result = await sfQuery<any>(query)
     
     if (result.totalSize === 0) {
