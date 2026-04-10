@@ -111,7 +111,7 @@ export default function CheckoutPage() {
                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                  {items.map(i => (
                    <div key={i.productId} style={{ display: 'flex', gap: 16, paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
-                     <img src={i.imageUrl} alt={i.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 12, border: '1px solid #e2e8f0' }} />
+                     <img src={i.imageUrl || '/placeholder-product.png'} alt={i.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 12, border: '1px solid #e2e8f0' }} />
                      <div style={{ flex: 1 }}>
                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 15, marginBottom: 4 }}>{i.name}</div>
                        <div style={{ color: '#64748b', fontSize: 13, marginBottom: 8 }}>Qty: {i.quantity}</div>
