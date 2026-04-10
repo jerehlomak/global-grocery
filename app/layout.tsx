@@ -7,7 +7,7 @@ import CartDrawer from '@/components/cart/CartDrawer'
 import LiveChatPlaceholder from '@/components/shared/LiveChatPlaceholder'
 
 export const metadata: Metadata = {
-  title: 'GlobalGrocer  Enterprise Grocery eCommerce',
+  title: 'GlobalGrocery  Enterprise Grocery eCommerce',
   description: 'A Salesforce-powered global grocery eCommerce platform. Shop fresh, regional pricing, enterprise features.',
 }
 

@@ -15,7 +15,7 @@ export interface SFProduct {
   Description: string
   Family: string
   IsActive: boolean
-  DisplayUrl?: string
+  DisplayUrl?: string | null
   attributes?: { type: string; url: string }
 }
 

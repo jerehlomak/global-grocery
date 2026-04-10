@@ -24,11 +24,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) { router.push('/login'); return }
     Promise.all([
-      fetchOpportunities({ contactId: user.contactId }),
+      fetchOpportunities({ contactId: user.contactId, accountId: user.accountId }),
       fetchQuotes(), // Real app would filter by opps
       fetchOrders(user.accountId),
       fetchContracts(user.accountId),
-      fetchCases(user.contactId),
+      fetchCases(user.contactId || user.accountId),
       fetchStages()
     ]).then(([opps, quotes, orders, contracts, cases, stages]) => {
       setData({ opps, quotes, orders, contracts, cases, stages })
@@ -47,7 +47,28 @@ export default function DashboardPage() {
         <p style={{ color: '#64748b' }}>Welcome back, {user.firstName}. Here is an overview of your Salesforce data.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 40 }}>
+      <style>{`
+        .dashboard-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          margin-bottom: 40px;
+        }
+        .dashboard-main-grid {
+          display: grid;
+          grid-template-columns: 1.5fr 1fr;
+          gap: 24px;
+        }
+        @media (max-width: 1024px) {
+          .dashboard-stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .dashboard-main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+          .dashboard-stats-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      <div className="dashboard-stats-grid">
         {[
           { icon: DollarSign, label: 'Active Opportunities', value: loading ? '-' : data.opps.length, color: '#4f46e5', bg: '#ede9fe' },
           { icon: FileText, label: 'Pending Quotes', value: loading ? '-' : data.quotes.length, color: '#d97706', bg: '#fef3c7' },
@@ -69,7 +90,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 24 }}>
+      <div className="dashboard-main-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Opportunities */}
           <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>

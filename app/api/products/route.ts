@@ -32,7 +32,7 @@ function entriesToProducts(entries: SFPriceBookEntry[]): Product[] {
       productCode: entry.Product2.ProductCode,
       description: entry.Product2.Description,
       family: entry.Product2.Family,
-      imageUrl: salesforceImage || image as string,
+      imageUrl: salesforceImage || null,
       isActive: entry.Product2.IsActive,
       unitPrice: entry.UnitPrice,
       currency: entry.CurrencyIsoCode,

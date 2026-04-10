@@ -30,12 +30,12 @@ export default function AdminDashboardPage() {
   useEffect(() => { load() }, [])
 
   const fmt = (p: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(p)
-  const totalRev = opps.filter(o => o.StageName === 'Closed Won').reduce((a, b) => a + (b.Amount||0), 0)
-  const pipeRev = opps.filter(o => o.StageName !== 'Closed Won' && o.StageName !== 'Closed Lost').reduce((a, b) => a + (b.Amount||0), 0)
+  const totalRev = opps.filter(o => o.StageName === 'Closed Won').reduce((a, b) => a + (b.Amount || 0), 0)
+  const pipeRev = opps.filter(o => o.StageName !== 'Closed Won' && o.StageName !== 'Closed Lost').reduce((a, b) => a + (b.Amount || 0), 0)
 
   return (
     <div style={{ maxWidth: 1280, margin: '40px auto 100px', padding: '0 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
         <div>
           <h1 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 32, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Admin Analytics</h1>
           <p style={{ color: '#64748b' }}>Live pipeline and campaign performance.</p>
@@ -43,7 +43,27 @@ export default function AdminDashboardPage() {
         <LastSynced timestamp={lastSynced} source="salesforce" onRefresh={load} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 40 }}>
+      <style>{`
+        .admin-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          margin-bottom: 40px;
+        }
+        .admin-main-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+        @media (max-width: 1024px) {
+          .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .admin-main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+          .admin-stats-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+      <div className="admin-stats-grid">
         {[
           { icon: DollarSign, label: 'Closed Won Revenue', value: loading ? '-' : fmt(totalRev), color: '#059669', bg: '#d1fae5' },
           { icon: TrendingUp, label: 'Pipeline Val.', value: loading ? '-' : fmt(pipeRev), color: '#4f46e5', bg: '#ede9fe' },
@@ -65,7 +85,7 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      <div className="admin-main-grid">
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={20} color="#4f46e5" /> Campaign Performance</h2>
           {loading ? <SkeletonRow /> : campaigns.length === 0 ? <p style={{ color: '#64748b' }}>No campaigns found.</p> :
@@ -89,9 +109,9 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
-                       <div><div style={{ color: '#64748b', fontSize: 11 }}>Leads</div><div style={{ color: '#0f172a', fontWeight: 600, fontSize: 14 }}>{c.NumberOfLeads || 0}</div></div>
-                       <div><div style={{ color: '#64748b', fontSize: 11 }}>Contacts</div><div style={{ color: '#0f172a', fontWeight: 600, fontSize: 14 }}>{c.NumberOfContacts || 0}</div></div>
-                       <div><div style={{ color: '#64748b', fontSize: 11 }}>Converted</div><div style={{ color: '#059669', fontWeight: 600, fontSize: 14 }}>{c.NumberOfConvertedLeads || 0}</div></div>
+                      <div><div style={{ color: '#64748b', fontSize: 11 }}>Leads</div><div style={{ color: '#0f172a', fontWeight: 600, fontSize: 14 }}>{c.NumberOfLeads || 0}</div></div>
+                      <div><div style={{ color: '#64748b', fontSize: 11 }}>Contacts</div><div style={{ color: '#0f172a', fontWeight: 600, fontSize: 14 }}>{c.NumberOfContacts || 0}</div></div>
+                      <div><div style={{ color: '#64748b', fontSize: 11 }}>Converted</div><div style={{ color: '#059669', fontWeight: 600, fontSize: 14 }}>{c.NumberOfConvertedLeads || 0}</div></div>
                     </div>
                   </div>
                 )
@@ -106,8 +126,8 @@ export default function AdminDashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {stages.filter(s => s.IsActive).map(st => {
                 const stageOpps = opps.filter(o => o.StageName === st.ApiName)
-                const stageVal = stageOpps.reduce((a, b) => a + (b.Amount||0), 0)
-                const maxVal = Math.max(...stages.map(x => opps.filter(o => o.StageName === x.ApiName).reduce((a, b) => a + (b.Amount||0), 0)))
+                const stageVal = stageOpps.reduce((a, b) => a + (b.Amount || 0), 0)
+                const maxVal = Math.max(...stages.map(x => opps.filter(o => o.StageName === x.ApiName).reduce((a, b) => a + (b.Amount || 0), 0)))
                 const pct = maxVal > 0 ? (stageVal / maxVal) * 100 : 0
                 return (
                   <div key={st.ApiName}>

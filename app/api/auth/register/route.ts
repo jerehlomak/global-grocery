@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server'
 import { apiSuccess, apiError, isMockMode } from '@/lib/api/helpers'
 import { sfCreate, sfQuery } from '@/lib/salesforce/client'
 import type { RegisterRequest, AuthUser } from '@/types/api'
-import type { SFLead } from '@/types/salesforce'
+import type { SFAccount } from '@/types/salesforce'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,21 +25,68 @@ export async function POST(request: NextRequest) {
       return apiSuccess({ user, token: 'mock-jwt-token-' + leadId }, { source: 'mock' })
     }
 
-    // LIVE SF: Check if lead/contact already exists
-    const existing = await sfQuery<SFLead>('SELECT Id FROM Lead WHERE Email = \'' + email + '\' LIMIT 1')
-    if (existing.totalSize > 0) return apiError('An account with this email already exists', 409)
+    // LIVE SF: Look up if Account with this email already exists
+    // (PersonEmail for B2C, but we check generically or assume B2C)
+    const emailField = accountType === 'b2c' ? 'PersonEmail' : 'Email__c' // Use proper email field based on your org schema
+    const checkQuery = accountType === 'b2c' 
+      ? `SELECT Id FROM Account WHERE PersonEmail = '${email}' LIMIT 1`
+      : `SELECT Id FROM Account WHERE Name = '${company}' LIMIT 1` // Simplified check for B2B
 
-    // Create Lead in Salesforce
-    const result = await sfCreate('Lead', {
-      FirstName: firstName, LastName: lastName, Email: email,
-      Phone: phone, Company: company || firstName + ' ' + lastName,
-      Status: 'Open - Not Contacted', LeadSource: leadSource || 'Web',
-      Lead_Score__c: 10,
-    })
+    try {
+      const existing = await sfQuery<SFAccount>(checkQuery)
+      if (existing.totalSize > 0) return apiError('An account already exists', 409)
+    } catch (e) {
+      // Ignore query errors if fields don't exist yet
+    }
+
+    // Prepare Salesforce Account Payload
+    let payload: any = {}
+    
+    if (accountType === 'b2b') {
+      const b2bRecordTypeId = process.env.SF_B2B_RECORDTYPE_ID
+      payload = {
+        Name: company || `${firstName} ${lastName}`,
+        Phone: phone,
+      }
+      if (b2bRecordTypeId) payload.RecordTypeId = b2bRecordTypeId
+    } else {
+      const b2cRecordTypeId = process.env.SF_B2C_RECORDTYPE_ID
+      payload = {
+        FirstName: firstName,
+        LastName: lastName,
+        PersonEmail: email,
+        Phone: phone,
+      }
+      if (b2cRecordTypeId) payload.RecordTypeId = b2cRecordTypeId
+    }
+
+    // Merge any dynamically provided custom Salesforce fields (extracted from describe)
+    const { firstName: _f, lastName: _l, email: _e, password: _pw, company: _c, phone: _p, region: _t, campaignId: _ci, leadSource: _ls, accountType: _at, ...dynamicFields } = body
+    Object.assign(payload, dynamicFields)
+
+    const result = await sfCreate('Account', payload)
+
+    let finalContactId = undefined
+    // For B2B, create an associated Contact to store the Email so the user can securely log in
+    if (accountType === 'b2b') {
+      try {
+        const contactPayload = {
+          FirstName: firstName,
+          LastName: lastName,
+          Email: email,
+          Phone: phone,
+          AccountId: result.id
+        }
+        const contactResult = await sfCreate('Contact', contactPayload)
+        finalContactId = contactResult.id
+      } catch (err) {
+        console.error('Failed to create B2B proxy contact:', err)
+      }
+    }
 
     const user: AuthUser = {
       id: result.id, email, firstName, lastName, company,
-      leadId: result.id, isConverted: false, accountType,
+      accountId: result.id, contactId: finalContactId, isConverted: true, accountType,
       region: region || 'north-america',
     }
     return apiSuccess({ user, token: 'sf-jwt-' + result.id }, { source: 'salesforce' })

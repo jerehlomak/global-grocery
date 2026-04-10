@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Building2, User } from 'lucide-react'
@@ -15,20 +15,31 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', phone: '', company: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [dynamicFields, setDynamicFields] = useState<any[]>([])
+  const [dynamicValues, setDynamicValues] = useState<any>({})
+
+  // Fetch dynamic SF schema requirement
+  useEffect(() => {
+    fetch('/api/salesforce/account/describe')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data) {
+          // Only extract non-standard fields that might be strict required like a custom "TIN__c"
+          const required = json.data.filter((f: any) => f.required && !['Name', 'FirstName', 'LastName', 'Phone', 'PersonEmail'].includes(f.name))
+          setDynamicFields(required)
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
-      const res = await register(form)
+      // Register directly to SF Account via api route
+      const res = await register({ ...form, accountType: type, ...dynamicValues })
       setUser(res.user, res.token)
-      // Background Salesforce Sync (Lead Generation)
-      createLead({
-        firstName: form.firstName, lastName: form.lastName, email: form.email,
-        phone: form.phone, company: type === 'b2b' ? form.company : 'Direct Consumer',
-        leadSource: 'Web', country: 'United States'
-      }).catch(console.error)
       router.push('/dashboard')
     } catch (err: any) { setError(err.message) }
     finally { setLoading(false) }
@@ -81,7 +92,13 @@ export default function RegisterPage() {
               style={{ width: '100%', background: '#f1f5f9', border: '1px solid transparent', borderRadius: 12, padding: '12px 16px', color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = '#4f46e5'} onBlur={e => e.currentTarget.style.borderColor = 'transparent'} />
           )}
 
-          <p style={{ fontSize: 12, color: '#64748b', textAlign: 'center', margin: '8px 0' }}>Creating an account will generate a new Lead record in Salesforce.</p>
+          {/* Render dynamic Salesforce fields */}
+          {dynamicFields.length > 0 && dynamicFields.map((field) => (
+             <input key={field.name} placeholder={field.label} required={field.required} value={dynamicValues[field.name] || ''} onChange={e => setDynamicValues({...dynamicValues, [field.name]: e.target.value})}
+               style={{ width: '100%', background: '#f1f5f9', border: '1px solid transparent', borderRadius: 12, padding: '12px 16px', color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = '#4f46e5'} onBlur={e => e.currentTarget.style.borderColor = 'transparent'} />
+          ))}
+
+          <p style={{ fontSize: 12, color: '#64748b', textAlign: 'center', margin: '8px 0' }}>Creating an account will generate a new Account record in Salesforce.</p>
 
           <button disabled={loading} style={{ background: '#4f46e5', color: 'white', border: 'none', borderRadius: 12, padding: 16, fontSize: 16, fontWeight: 600, cursor: loading ? 'wait' : 'pointer', marginTop: 8, boxShadow: '0 4px 12px rgba(79,70,229,0.3)', transition: 'background 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.background = '#4338ca'} onMouseLeave={e => e.currentTarget.style.background = '#4f46e5'}>

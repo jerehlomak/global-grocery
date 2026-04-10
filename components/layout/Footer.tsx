@@ -11,7 +11,7 @@ export default function Footer() {
               <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Leaf size={14} color="white" />
               </div>
-              <span style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: '#0f172a' }}>GlobalGrocer</span>
+              <span style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: '#0f172a' }}>GlobalGrocery</span>
             </div>
             <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.6 }}>Enterprise grocery eCommerce platform powered by Salesforce Sales & Service Cloud.</p>
           </div>

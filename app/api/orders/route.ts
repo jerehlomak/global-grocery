@@ -24,19 +24,39 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { accountId, opportunityId, effectiveDate, status = 'Draft', description } = body
+    const { accountId, effectiveDate, status = 'Draft', description } = body
     if (!effectiveDate) return apiError('effectiveDate is required')
+    if (!accountId) return apiError('accountId is required')
 
     if (isMockMode()) {
       const order: Partial<SFOrder> = {
-        Id: '801' + Date.now(), AccountId: accountId, OpportunityId: opportunityId,
+        Id: '801' + Date.now(), AccountId: accountId, OpportunityId: '006' + Date.now(),
         Status: status, EffectiveDate: effectiveDate, Description: description,
         CreatedDate: new Date().toISOString(),
       }
       return apiSuccess(order, { source: 'mock' })
     }
 
-    const result = await sfCreate('Order', { AccountId: accountId, Status: status, EffectiveDate: effectiveDate, Description: description })
-    return apiSuccess({ id: result.id, success: result.success }, { source: 'salesforce' })
-  } catch (err) { return apiError('Failed to create order', 500) }
+    // Automatically generate an Opportunity for the Order funnel tracking
+    const oppResult = await sfCreate('Opportunity', {
+      Name: `New Order Pipeline - ${new Date().toLocaleDateString()}`,
+      AccountId: accountId,
+      StageName: 'Qualification', // Standard Salesforce sales stage
+      CloseDate: effectiveDate
+    })
+
+    // Create the Order and directly link it to the generated Opportunity
+    const result = await sfCreate('Order', { 
+      AccountId: accountId, 
+      OpportunityId: oppResult.id,
+      Status: status, 
+      EffectiveDate: effectiveDate, 
+      Description: description 
+    })
+    
+    return apiSuccess({ id: result.id, opportunityId: oppResult.id, success: result.success }, { source: 'salesforce' })
+  } catch (err: any) { 
+    console.error('[/api/orders] CREATE error:', err)
+    return apiError('Failed to create order and opportunity: ' + (err.message || 'Unknown error'), 500) 
+  }
 }

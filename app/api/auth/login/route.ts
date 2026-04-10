@@ -42,17 +42,21 @@ export async function POST(request: NextRequest) {
       return apiSuccess({ user, token: 'mock-jwt-' + user.id }, { source: 'mock' })
     }
 
-    // LIVE SF: Look up Contact by email, fall back to Lead
-    const contactResult = await sfQuery<SFContact>(
-      'SELECT Id, FirstName, LastName, Email, AccountId FROM Contact WHERE Email = \'' + email + '\' LIMIT 1'
+    // LIVE SF: Look up Contact by email (Works for B2B proxy contacts & B2C Person Contacts)
+    const contactResult = await sfQuery<any>(
+      `SELECT Id, FirstName, LastName, Email, AccountId, Account.IsPersonAccount, Account.Name FROM Contact WHERE Email = '${email}' LIMIT 1`
     )
+
     if (contactResult.totalSize === 0) return apiError('Invalid credentials', 401)
 
     const contact = contactResult.records[0]
+    const isB2C = contact.Account?.IsPersonAccount
+    
     const user: AuthUser = {
       id: contact.Id, email: contact.Email, firstName: contact.FirstName,
-      lastName: contact.LastName, contactId: contact.Id, accountId: contact.AccountId,
-      isConverted: true, accountType: 'b2c',
+      lastName: contact.LastName || '', accountId: contact.AccountId, contactId: contact.Id,
+      company: isB2C ? '' : (contact.Account?.Name || ''),
+      isConverted: true, accountType: isB2C ? 'b2c' : 'b2b',
     }
     return apiSuccess({ user, token: 'sf-jwt-' + contact.Id }, { source: 'salesforce' })
   } catch (err) {

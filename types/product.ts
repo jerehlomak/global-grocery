@@ -40,7 +40,7 @@ export interface Product {
   productCode: string
   description: string
   family: string
-  imageUrl: string
+  imageUrl: string | null
   isActive: boolean
   // Pricing from PriceBookEntry for selected region
   unitPrice: number

@@ -82,7 +82,7 @@ export default function CaseSupportForm() {
           background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)',
           border: '1.5px solid #a7f3d0',
           borderRadius: 16,
-          padding: '40px 32px',
+          padding: '40px 24px',
           textAlign: 'center',
         }}
       >

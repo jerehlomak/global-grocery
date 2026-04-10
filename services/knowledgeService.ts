@@ -12,3 +12,9 @@ export async function fetchKnowledgeArticles(search?: string, category?: string)
   if (!json.success) throw new Error(json.error || 'Failed to fetch articles')
   return json.data || []
 }
+export async function fetchFeaturedArticles(): Promise<SFKnowledgeArticle[]> {
+  const res = await fetch(`${BASE}/knowledge?featured=true`)
+  const json: ApiResponse<SFKnowledgeArticle[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to fetch featured articles')
+  return json.data || []
+}

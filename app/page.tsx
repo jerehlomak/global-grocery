@@ -9,6 +9,7 @@ import type { Product } from '@/types/product'
 import ProductCard from '@/components/products/ProductCard'
 import { SkeletonCard } from '@/components/shared/SkeletonLoader'
 import WebToLeadForm from '@/components/leads/form'
+import CampaignSubscribeModal from '@/components/campaigns/CampaignSubscribeModal'
 
 const STATS = [
   { label: 'Products', value: '12,000+', icon: Package },
@@ -23,12 +24,26 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [families, setFamilies] = useState<string[]>([])
   const [familiesLoading, setFamiliesLoading] = useState(true)
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [campaignsLoading, setCampaignsLoading] = useState(true)
+  const [activeModal, setActiveModal] = useState<{ id: string, name: string } | null>(null)
 
   useEffect(() => {
     fetchFamilies()
       .then(fams => setFamilies(fams))
       .catch(console.error)
       .finally(() => setFamiliesLoading(false))
+
+    // Fetch active campaigns for the public home page
+    fetch('/api/campaigns')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          setCampaigns(data.data)
+        }
+      })
+      .catch(console.error)
+      .finally(() => setCampaignsLoading(false))
   }, [])
 
   useEffect(() => {
@@ -139,6 +154,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/*  ACTIVE CAMPAIGNS  */}
+      <section style={{ maxWidth: 1280, margin: '80px auto', padding: '0 24px' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <div className="mobile-col mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 40 }}>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 20, padding: '4px 12px', marginBottom: 12 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
+                <span style={{ fontSize: 12, color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Campaigns</span>
+              </div>
+              <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 32, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Connect & Subscribe</h2>
+              <p style={{ color: '#64748b' }}>Join our upcoming events to scale your regional distribution</p>
+            </div>
+          </div>
+        </motion.div>
+        
+        {campaignsLoading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+            {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : campaigns.length === 0 ? (
+          <div style={{ background: '#f8fafc', borderRadius: 16, padding: 40, textAlign: 'center', border: '1px solid #e2e8f0' }}>
+            <p style={{ color: '#64748b', fontSize: 16 }}>No active campaigns available at this time. Check back soon!</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+            {campaigns.map((camp, i) => (
+              <motion.div key={camp.Id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden' }}
+              >
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #ec4899, #8b5cf6)' }} />
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 12, lineHeight: 1.3 }}>{camp.Name}</h3>
+                <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.6, flexGrow: 1, marginBottom: 24 }}>
+                  {camp.Description || 'Join this exclusive campaign to receive insights tailored to your industry operations.'}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>
+                    {camp.StartDate ? new Date(camp.StartDate).toLocaleDateString() : 'Ongoing'}
+                  </span>
+                  <button onClick={() => setActiveModal({ id: camp.Id, name: camp.Name })}
+                    style={{ padding: '8px 16px', background: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: 14, border: 'none', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#0f172a'; e.currentTarget.style.color = '#fff' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a' }}
+                  >
+                    Subscribe
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/*  SF CLOUD FEATURES  */}
       <section style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '80px 24px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -236,6 +303,14 @@ export default function HomePage() {
 
         </div>
       </section>
+      
+
+      <CampaignSubscribeModal 
+        isOpen={activeModal !== null} 
+        onClose={() => setActiveModal(null)} 
+        campaignId={activeModal?.id || ''} 
+        campaignName={activeModal?.name || ''} 
+      />
     </div>
   )
 }
