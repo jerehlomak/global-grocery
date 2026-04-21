@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // LIVE SF: Look up if Account with this email already exists
     // (PersonEmail for B2C, but we check generically or assume B2C)
     const emailField = accountType === 'b2c' ? 'PersonEmail' : 'Email__c' // Use proper email field based on your org schema
-    const checkQuery = accountType === 'b2c' 
+    const checkQuery = accountType === 'b2c'
       ? `SELECT Id FROM Account WHERE PersonEmail = '${email}' LIMIT 1`
       : `SELECT Id FROM Account WHERE Name = '${company}' LIMIT 1` // Simplified check for B2B
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare Salesforce Account Payload (Standard Account fields only)
     let payload: any = {}
-    
+
     if (accountType === 'b2b') {
       const b2bRecordTypeId = process.env.SF_B2B_RECORDTYPE_ID
       payload = {
@@ -100,6 +100,10 @@ export async function POST(request: NextRequest) {
     return apiSuccess({ user, token: 'sf-jwt-' + result.id }, { source: 'salesforce' })
   } catch (err) {
     console.error('[/api/auth/register]', err)
-    return apiError(err.message || 'Registration failed', 500)
+
+    const message =
+      err instanceof Error ? err.message : 'Registration failed'
+
+    return apiError(message, 500)
   }
 }
