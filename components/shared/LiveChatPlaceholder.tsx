@@ -3,10 +3,10 @@
 import Script from 'next/script'
 
 
-const ORG_ID      = '00Dd200000gnjBt'
-const ESW_NAME    = 'Global_Grocery'
-const ESW_URL     = 'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.site.com/ESWGlobalGrocery1775717610105'
-const SCRT_URL    = 'https://wise-wolf-3sucf2-dev-ed.trailblaze.my.salesforce-scrt.com'
+const ORG_ID      = '00Dd200000eNvL7'
+const ESW_NAME    = 'Global_Grocery_Channel'
+const ESW_URL     = 'https://wise-moose-1vy13f-dev-ed.trailblaze.my.site.com/ESWGlobalGroceryChannel1776780613599'
+const SCRT_URL    = 'https://wise-moose-1vy13f-dev-ed.trailblaze.my.salesforce-scrt.com'
 const BOOTSTRAP_SRC = `${ESW_URL}/assets/js/bootstrap.min.js`
 
 function initEmbeddedMessaging() {
@@ -17,7 +17,7 @@ function initEmbeddedMessaging() {
       return;
     }
     
-    console.log('✅ Initializing Salesforce Messaging...');
+    console.log('✅ Initializing Salesforce Messaging (Global Grocery Channel)...');
     esw.settings.language = 'en_US'
     esw.init(ORG_ID, ESW_NAME, ESW_URL, {
       scrt2URL: SCRT_URL,

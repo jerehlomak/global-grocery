@@ -1,19 +1,25 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { User, Mail, Phone, Briefcase, MapPin, Globe, CheckCircle2, Send, ChevronDown } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { User, Mail, Briefcase, Users, MapPin, CheckCircle2, Send, ChevronDown, AlignLeft } from 'lucide-react'
 
-const SF_ACTION = 'https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00Dd200000gnjBt'
+// Action URL from the snippet
+const SF_ACTION = 'https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00Dd200000eNvL7'
 
 const INDUSTRIES = [
-  'Agriculture', 'Apparel', 'Banking', 'Biotechnology', 'Chemicals',
-  'Communications', 'Construction', 'Consulting', 'Education', 'Electronics',
-  'Energy', 'Engineering', 'Entertainment', 'Environmental', 'Finance',
-  'Food & Beverage', 'Government', 'Healthcare', 'Hospitality', 'Insurance',
-  'Machinery', 'Manufacturing', 'Media', 'Not For Profit', 'Recreation',
-  'Retail', 'Shipping', 'Technology', 'Telecommunications', 'Transportation',
-  'Utilities', 'Other',
+  'Retail', 'Food & Beverage', 'Hospitality', 'Manufacturing', 
+  'Healthcare', 'Education', 'Government', 'Transportation', 
+  'Shipping', 'Finance'
+]
+
+const REGIONS = ['Africa', 'Europe', 'North America']
+
+const PRODUCT_INTERESTS = [
+  'Bulk Order', 'Distributor Partnership', 'Retail Supply', 
+  'Bulk Staples', 'Cooking Essentials', 'Household Items', 
+  'Beverages', 'Packaged Foods', 'Fresh Produce', 
+  'Personal Purchase', 'Browsing / Inquiry'
 ]
 
 const inputStyle: React.CSSProperties = {
@@ -52,8 +58,8 @@ const iconWrap: React.CSSProperties = {
 }
 
 const INIT = {
-  first_name: '', last_name: '', email: '', phone: '',
-  industry: '', city: '', country: '', state: '',
+  first_name: '', last_name: '', email: '', company: '',
+  industry: '', employees: '', region: '', product_interest: ''
 }
 
 export default function WebToLeadForm() {
@@ -71,7 +77,7 @@ export default function WebToLeadForm() {
       : {}
 
   const handleSubmit = () => {
-    // Form will navigate to retURL (localhost); we optimistically show success + clear
+    // Form will navigate to retURL; we optimistically show success + clear
     setTimeout(() => {
       setFields(INIT)
       setSubmitted(true)
@@ -128,19 +134,19 @@ export default function WebToLeadForm() {
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
       {/* Salesforce hidden fields */}
-      <input type="hidden" name="oid" value="00Dd200000gnjBt" />
-      <input type="hidden" name="retURL" value={typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'} />
+      <input type="hidden" name="oid" value="00Dd200000eNvL7" />
+      <input type="hidden" name="retURL" value="https://global-grocery.vercel.app" />
       <input type="hidden" name="lead_source" value="Web" />
 
       {/* Name row */}
       <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {/* First Name */}
         <div>
-          <label htmlFor="lead_first_name" style={labelStyle}>First Name</label>
+          <label htmlFor="first_name" style={labelStyle}>First Name</label>
           <div style={{ position: 'relative' }}>
             <span style={iconWrap}><User size={15} /></span>
             <input
-              id="lead_first_name" name="first_name" type="text" maxLength={40}
+              id="first_name" name="first_name" type="text" maxLength={40}
               required placeholder="Jane" value={fields.first_name} onChange={set('first_name')}
               style={{ ...inputStyle, ...focusBorder('first_name') }}
               onFocus={() => setFocused('first_name')} onBlur={() => setFocused(null)}
@@ -149,11 +155,11 @@ export default function WebToLeadForm() {
         </div>
         {/* Last Name */}
         <div>
-          <label htmlFor="lead_last_name" style={labelStyle}>Last Name</label>
+          <label htmlFor="last_name" style={labelStyle}>Last Name</label>
           <div style={{ position: 'relative' }}>
             <span style={iconWrap}><User size={15} /></span>
             <input
-              id="lead_last_name" name="last_name" type="text" maxLength={80}
+              id="last_name" name="last_name" type="text" maxLength={80}
               required placeholder="Smith" value={fields.last_name} onChange={set('last_name')}
               style={{ ...inputStyle, ...focusBorder('last_name') }}
               onFocus={() => setFocused('last_name')} onBlur={() => setFocused(null)}
@@ -164,11 +170,11 @@ export default function WebToLeadForm() {
 
       {/* Email */}
       <div>
-        <label htmlFor="lead_email" style={labelStyle}>Email</label>
+        <label htmlFor="email" style={labelStyle}>Email</label>
         <div style={{ position: 'relative' }}>
           <span style={iconWrap}><Mail size={15} /></span>
           <input
-            id="lead_email" name="email" type="email" maxLength={80}
+            id="email" name="email" type="email" maxLength={80}
             required placeholder="jane@company.com" value={fields.email} onChange={set('email')}
             style={{ ...inputStyle, ...focusBorder('email') }}
             onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
@@ -176,27 +182,43 @@ export default function WebToLeadForm() {
         </div>
       </div>
 
-      {/* Phone */}
-      <div>
-        <label htmlFor="lead_phone" style={labelStyle}>Phone</label>
-        <div style={{ position: 'relative' }}>
-          <span style={iconWrap}><Phone size={15} /></span>
-          <input
-            id="lead_phone" name="phone" type="tel" maxLength={40}
-            placeholder="+1 (555) 000-0000" value={fields.phone} onChange={set('phone')}
-            style={{ ...inputStyle, ...focusBorder('phone') }}
-            onFocus={() => setFocused('phone')} onBlur={() => setFocused(null)}
-          />
+      {/* Company + Employees row */}
+      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Company */}
+        <div>
+          <label htmlFor="company" style={labelStyle}>Company</label>
+          <div style={{ position: 'relative' }}>
+            <span style={iconWrap}><Briefcase size={15} /></span>
+            <input
+              id="company" name="company" type="text" maxLength={40} required
+              placeholder="Acme Corp" value={fields.company} onChange={set('company')}
+              style={{ ...inputStyle, ...focusBorder('company') }}
+              onFocus={() => setFocused('company')} onBlur={() => setFocused(null)}
+            />
+          </div>
+        </div>
+        {/* Employees */}
+        <div>
+          <label htmlFor="employees" style={labelStyle}>Employees</label>
+          <div style={{ position: 'relative' }}>
+            <span style={iconWrap}><Users size={15} /></span>
+            <input
+              id="employees" name="employees" type="text" maxLength={20}
+              placeholder="e.g. 50" value={fields.employees} onChange={set('employees')}
+              style={{ ...inputStyle, ...focusBorder('employees') }}
+              onFocus={() => setFocused('employees')} onBlur={() => setFocused(null)}
+            />
+          </div>
         </div>
       </div>
 
       {/* Industry */}
       <div>
-        <label htmlFor="lead_industry" style={labelStyle}>Industry</label>
+        <label htmlFor="00Nd200001xsj0r" style={labelStyle}>Industry</label>
         <div style={{ position: 'relative' }}>
           <span style={iconWrap}><Briefcase size={15} /></span>
           <select
-            id="lead_industry" name="industry"
+            id="00Nd200001xsj0r" name="00Nd200001xsj0r" title="Industry"
             value={fields.industry} onChange={set('industry')}
             style={{
               ...inputStyle,
@@ -217,45 +239,57 @@ export default function WebToLeadForm() {
         </div>
       </div>
 
-      {/* City + Country row */}
-      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <label htmlFor="lead_city" style={labelStyle}>City</label>
-          <div style={{ position: 'relative' }}>
-            <span style={iconWrap}><MapPin size={15} /></span>
-            <input
-              id="lead_city" name="city" type="text" maxLength={40}
-              placeholder="London" value={fields.city} onChange={set('city')}
-              style={{ ...inputStyle, ...focusBorder('city') }}
-              onFocus={() => setFocused('city')} onBlur={() => setFocused(null)}
-            />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="lead_country" style={labelStyle}>Country</label>
-          <div style={{ position: 'relative' }}>
-            <span style={iconWrap}><Globe size={15} /></span>
-            <input
-              id="lead_country" name="country" type="text" maxLength={40}
-              placeholder="United Kingdom" value={fields.country} onChange={set('country')}
-              style={{ ...inputStyle, ...focusBorder('country') }}
-              onFocus={() => setFocused('country')} onBlur={() => setFocused(null)}
-            />
-          </div>
+      {/* Region */}
+      <div>
+        <label htmlFor="00Nd200001xgsHd" style={labelStyle}>Region</label>
+        <div style={{ position: 'relative' }}>
+          <span style={iconWrap}><MapPin size={15} /></span>
+          <select
+            id="00Nd200001xgsHd" name="00Nd200001xgsHd" title="Region"
+            value={fields.region} onChange={set('region')}
+            style={{
+              ...inputStyle,
+              appearance: 'none', WebkitAppearance: 'none',
+              cursor: 'pointer',
+              ...focusBorder('region'),
+            }}
+            onFocus={() => setFocused('region')} onBlur={() => setFocused(null)}
+          >
+            <option value="" style={{ background: '#1e1b4b' }}>-- Select Region --</option>
+            {REGIONS.map(reg => (
+              <option key={reg} value={reg} style={{ background: '#1e1b4b' }}>{reg}</option>
+            ))}
+          </select>
+          <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }}>
+            <ChevronDown size={15} />
+          </span>
         </div>
       </div>
 
-      {/* State */}
+      {/* Product Interest */}
       <div>
-        <label htmlFor="lead_state" style={labelStyle}>State / Province</label>
+        <label htmlFor="00Nd200001sDrWz" style={labelStyle}>Product Interest</label>
         <div style={{ position: 'relative' }}>
-          <span style={iconWrap}><MapPin size={15} /></span>
-          <input
-            id="lead_state" name="state" type="text" maxLength={20}
-            placeholder="e.g. California" value={fields.state} onChange={set('state')}
-            style={{ ...inputStyle, ...focusBorder('state') }}
-            onFocus={() => setFocused('state')} onBlur={() => setFocused(null)}
-          />
+          <span style={iconWrap}><AlignLeft size={15} /></span>
+          <select
+            id="00Nd200001sDrWz" name="00Nd200001sDrWz" title="Product Interest"
+            value={fields.product_interest} onChange={set('product_interest')}
+            style={{
+              ...inputStyle,
+              appearance: 'none', WebkitAppearance: 'none',
+              cursor: 'pointer',
+              ...focusBorder('product_interest'),
+            }}
+            onFocus={() => setFocused('product_interest')} onBlur={() => setFocused(null)}
+          >
+            <option value="" style={{ background: '#1e1b4b' }}>-- Select Interest --</option>
+            {PRODUCT_INTERESTS.map(pi => (
+              <option key={pi} value={pi} style={{ background: '#1e1b4b' }}>{pi}</option>
+            ))}
+          </select>
+          <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }}>
+            <ChevronDown size={15} />
+          </span>
         </div>
       </div>
 

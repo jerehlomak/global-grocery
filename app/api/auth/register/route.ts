@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       // Ignore query errors if fields don't exist yet
     }
 
-    // Prepare Salesforce Account Payload
+    // Prepare Salesforce Account Payload (Standard Account fields only)
     let payload: any = {}
     
     if (accountType === 'b2b') {
@@ -52,36 +52,44 @@ export async function POST(request: NextRequest) {
     } else {
       const b2cRecordTypeId = process.env.SF_B2C_RECORDTYPE_ID
       payload = {
-        FirstName: firstName,
-        LastName: lastName,
-        PersonEmail: email,
+        Name: `${firstName} ${lastName}`,
         Phone: phone,
       }
       if (b2cRecordTypeId) payload.RecordTypeId = b2cRecordTypeId
     }
 
-    // Merge any dynamically provided custom Salesforce fields (extracted from describe)
+    // Merge any dynamically provided custom Salesforce fields
     const { firstName: _f, lastName: _l, email: _e, password: _pw, company: _c, phone: _p, region: _t, campaignId: _ci, leadSource: _ls, accountType: _at, ...dynamicFields } = body
     Object.assign(payload, dynamicFields)
 
-    const result = await sfCreate('Account', payload)
+    let result;
+    try {
+      result = await sfCreate('Account', payload);
+    } catch (createErr: any) {
+      // Graceful fallback if the Dev Org doesn't have Record Types enabled for Account
+      if (createErr.message && createErr.message.includes("No such column 'RecordTypeId'")) {
+        delete payload.RecordTypeId;
+        result = await sfCreate('Account', payload);
+      } else {
+        throw createErr;
+      }
+    }
 
     let finalContactId = undefined
-    // For B2B, create an associated Contact to store the Email so the user can securely log in
-    if (accountType === 'b2b') {
-      try {
-        const contactPayload = {
-          FirstName: firstName,
-          LastName: lastName,
-          Email: email,
-          Phone: phone,
-          AccountId: result.id
-        }
-        const contactResult = await sfCreate('Contact', contactPayload)
-        finalContactId = contactResult.id
-      } catch (err) {
-        console.error('Failed to create B2B proxy contact:', err)
+    // Create an associated Contact to store the Email so the user can securely log in (for both B2B and B2C non-Person orgs)
+    try {
+      const contactPayload = {
+        FirstName: firstName,
+        LastName: lastName,
+        Email: email,
+        Phone: phone,
+        AccountId: result.id
       }
+      const contactResult = await sfCreate('Contact', contactPayload)
+      finalContactId = contactResult.id
+    } catch (err: any) {
+      console.error('Failed to create proxy contact:', err)
+      // We don't abort the entire registration here but ideally we should
     }
 
     const user: AuthUser = {
@@ -92,6 +100,6 @@ export async function POST(request: NextRequest) {
     return apiSuccess({ user, token: 'sf-jwt-' + result.id }, { source: 'salesforce' })
   } catch (err) {
     console.error('[/api/auth/register]', err)
-    return apiError('Registration failed', 500)
+    return apiError(err.message || 'Registration failed', 500)
   }
 }

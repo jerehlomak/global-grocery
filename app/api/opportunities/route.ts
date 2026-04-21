@@ -17,12 +17,19 @@ export async function GET(request: NextRequest) {
       return apiSuccess(opps, { total: opps.length, source: 'mock' })
     }
 
-    let soql = 'SELECT Id, Name, AccountId, Account.Name, StageName, CloseDate, Amount, Probability, LeadSource, PriceBook2Id, OwnerId, CreatedDate, LastModifiedDate FROM Opportunity ORDER BY CreatedDate DESC LIMIT 100'
-    if (contactId) soql = soql.replace('FROM Opportunity', 'FROM Opportunity WHERE ContactId = \'' + contactId + '\'')
+    const conditions: string[] = []
+    if (contactId) conditions.push(`ContactId = '${contactId}'`)
+    if (accountId) conditions.push(`AccountId = '${accountId}'`)
 
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    const soql = `SELECT Id, Name, AccountId, Account.Name, StageName, CloseDate, Amount, Probability, LeadSource, PriceBook2Id, OwnerId, CreatedDate, LastModifiedDate FROM Opportunity ${whereClause} ORDER BY CreatedDate DESC LIMIT 100`
     const result = await sfQuery<SFOpportunity>(soql)
     return apiSuccess(result.records, { total: result.totalSize, source: 'salesforce' })
-  } catch (err) { return apiError('Failed to fetch opportunities', 500) }
+  } catch (err: any) {
+    console.error('[GET /api/opportunities]', err)
+    return apiError('Failed to fetch opportunities: ' + err.message, 500)
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -42,12 +49,73 @@ export async function POST(request: NextRequest) {
       return apiSuccess({ opportunity: opp, lineItems }, { source: 'mock' })
     }
 
-    // LIVE SF: Create Opportunity then add OpportunityLineItems
-    const result = await sfCreate('Opportunity', {
+    // LIVE SF: Resolve the active Standard Price Book first
+    let resolvedPricebookId = (priceBook2Id && priceBook2Id.length >= 15) ? priceBook2Id : null
+
+    if (!resolvedPricebookId) {
+      try {
+        const pbResult = await sfQuery<any>('SELECT Id FROM Pricebook2 WHERE IsStandard = true AND IsActive = true LIMIT 1')
+        if (pbResult.totalSize > 0) resolvedPricebookId = pbResult.records[0].Id
+      } catch (e) {
+        console.error('Could not resolve Standard Price Book:', e)
+      }
+    }
+
+    // LIVE SF: Create Opportunity
+    const oppPayload: any = {
       Name: name, AccountId: accountId, StageName: stageName,
       CloseDate: closeDate, Amount: amount, LeadSource: leadSource,
-      Pricebook2Id: priceBook2Id, Description: description,
-    })
+      Description: description,
+    }
+
+    // Note: Do NOT set Pricebook2Id or CurrencyIsoCode here.
+    // Salesforce will auto-assign the Standard Price Book.
+    // Setting CurrencyIsoCode fails on orgs without multi-currency.
+
+    const result = await sfCreate('Opportunity', oppPayload)
+
+    // Add OpportunityLineItems — resolve PricebookEntry from SF using Product2Id
+    if (result.success && lineItems && lineItems.length > 0) {
+      const product2Ids = lineItems
+        .map((i: any) => i.productId)
+        .filter(Boolean)
+        .map((id: string) => `'${id}'`)
+        .join(',')
+
+      let entryMap: Map<string, string> = new Map()
+      if (product2Ids && resolvedPricebookId) {
+        try {
+          const entryResult = await sfQuery<any>(
+            `SELECT Id, Product2Id FROM PricebookEntry WHERE Pricebook2Id = '${resolvedPricebookId}' AND Product2Id IN (${product2Ids}) AND IsActive = true`
+          )
+          entryResult.records.forEach((e: any) => entryMap.set(e.Product2Id, e.Id))
+        } catch (e: any) {
+          console.error('Could not resolve PricebookEntries:', e.message)
+        }
+      }
+
+      for (const item of lineItems) {
+        const pricebookEntryId = entryMap.get(item.productId) || item.priceBookEntryId
+        if (!pricebookEntryId) {
+          console.warn('Skipping line item, no PricebookEntry found for product:', item.productId)
+          continue
+        }
+        try {
+          await sfCreate('OpportunityLineItem', {
+            OpportunityId: result.id,
+            PricebookEntryId: pricebookEntryId,
+            Quantity: item.quantity,
+            UnitPrice: item.unitPrice
+          })
+        } catch (err: any) {
+          console.error('Failed to add OpportunityLineItem:', err.message || err)
+        }
+      }
+    }
+
     return apiSuccess({ id: result.id, success: result.success }, { source: 'salesforce' })
-  } catch (err) { return apiError('Failed to create opportunity', 500) }
+  } catch (err: any) {
+    console.error('[POST /api/opportunities]', err)
+    return apiError(err.message || 'Failed to create opportunity', 500)
+  }
 }

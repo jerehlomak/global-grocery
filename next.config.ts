@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
               "frame-src 'self' https://*.salesforce.com https://*.trailblaze.my.site.com https://*.salesforce-sites.com https://*.salesforceliveagent.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.salesforce.com https://*.trailblaze.my.site.com https://*.salesforce-sites.com",
               "font-src 'self' https://fonts.gstatic.com https://*.salesforce.com https://*.trailblaze.my.site.com https://*.salesforce-sites.com",
-              "img-src 'self' data: https://*.salesforce.com https://*.trailblaze.my.site.com",
+              "img-src 'self' data: https: http: blob:",
               "worker-src 'self' blob:",
             ].join('; '),
           },

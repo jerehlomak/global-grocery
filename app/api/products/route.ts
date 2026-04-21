@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
 
     // ================= LIVE SALESFORCE =================
 
-    // Filter strictly by the selected currency (USD, CAD, NGN)
+    // Filter strictly by the selected currency (USD, EUR, NGN)
     // We assume the org uses Standard Price Book entries designated by currency
     let whereClauses = [`IsActive = TRUE`, `CurrencyIsoCode = '${region}'`]
 
@@ -149,6 +149,28 @@ export async function GET(request: NextRequest) {
 
     // Apply limit and offset in JS since we had to deduplicate
     const paginatedRecords = deduplicatedRecords.slice(offset, offset + limit)
+
+    // Fetch images separately as requested
+    const productIds = paginatedRecords.map((r: any) => r.Product2Id).filter(Boolean)
+    if (productIds.length > 0) {
+      const idsString = productIds.map((id: string) => `'${id}'`).join(',')
+      const imageQuery = `SELECT Id, DisplayUrl FROM Product2 WHERE Id IN (${idsString})`
+      const imageData = await sfFetch(`/services/data/v62.0/query?q=${encodeURIComponent(imageQuery)}`)
+      
+      const imagesMap = new Map<string, string>()
+      imageData.records.forEach((imgRec: any) => {
+        if (imgRec.DisplayUrl) {
+          imagesMap.set(imgRec.Id, imgRec.DisplayUrl)
+        }
+      })
+
+      // map it to paginatedRecords
+      paginatedRecords.forEach((record: any) => {
+        if (record.Product2 && imagesMap.has(record.Product2Id)) {
+          record.Product2.DisplayUrl = imagesMap.get(record.Product2Id)
+        }
+      })
+    }
 
     const products = entriesToProducts(paginatedRecords)
     const grouped = groupProducts(products)

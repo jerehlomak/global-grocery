@@ -4,10 +4,10 @@ import { useAuthStore } from '@/lib/store/authStore'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { DollarSign, FileText, Package, AlertCircle } from 'lucide-react'
-import { fetchOpportunities } from '@/services/opportunityService'
-import { fetchQuotes } from '@/services/quoteService'
-import { fetchOrders } from '@/services/orderService'
-import { fetchContracts } from '@/services/contractService'
+import { fetchOpportunities, updateOpportunity } from '@/services/opportunityService'
+import { fetchQuotes, updateQuote } from '@/services/quoteService'
+import { fetchOrders, createOrder } from '@/services/orderService'
+import { fetchContracts, createContract } from '@/services/contractService'
 import { fetchCases } from '@/services/caseService'
 import type { SFOpportunity, SFQuote, SFOrder, SFContract, SFCase } from '@/types/salesforce'
 import SalesPath from '@/components/dashboard/SalesPath'
@@ -20,25 +20,101 @@ export default function DashboardPage() {
   // Ensure we avoid hooks running conditionally
   const [data, setData] = useState<any>({ opps: [], quotes: [], orders: [], contracts: [], cases: [], stages: [] })
   const [loading, setLoading] = useState(true)
+  const [payingQuote, setPayingQuote] = useState<any>(null)
+  const [payLoading, setPayLoading] = useState(false)
 
-  useEffect(() => {
-    if (!user) { router.push('/login'); return }
-    Promise.all([
+  const fetchData = async () => {
+    if (!user) return
+    console.log('[Dashboard] Fetching data for user:', { 
+      email: user.email, 
+      contactId: user.contactId, 
+      accountId: user.accountId 
+    })
+
+    const results = await Promise.allSettled([
       fetchOpportunities({ contactId: user.contactId, accountId: user.accountId }),
-      fetchQuotes(), // Real app would filter by opps
+      fetchQuotes(undefined, user.accountId),
       fetchOrders(user.accountId),
       fetchContracts(user.accountId),
       fetchCases(user.contactId || user.accountId),
       fetchStages()
-    ]).then(([opps, quotes, orders, contracts, cases, stages]) => {
-      setData({ opps, quotes, orders, contracts, cases, stages })
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    ])
+
+    const [opps, quotes, orders, contracts, cases, stages] = results.map((r, i) => {
+      if (r.status === 'fulfilled') return r.value
+      console.error(`[Dashboard] API ${i} failed:`, r.reason)
+      return i === 5 ? [] : [] // Default to empty array on failure
+    })
+
+    setData({ 
+      opps: opps || [], 
+      quotes: quotes || [], 
+      orders: orders || [], 
+      contracts: contracts || [], 
+      cases: cases || [], 
+      stages: stages || [] 
+    })
+    setLoading(false)
+  }
+
+  const reloadData = () => fetchData()
+
+  useEffect(() => {
+    if (!user) { router.push('/login'); return }
+    fetchData()
   }, [user, router])
 
   if (!user) return null
 
   const fmt = (p: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p)
+
+  const handlePayQuote = async () => {
+    if (!payingQuote) return
+    setPayLoading(true)
+    try {
+      await updateQuote(payingQuote.Id, { Status: 'Accepted' })
+      if (payingQuote.OpportunityId) {
+        await updateOpportunity(payingQuote.OpportunityId, { StageName: 'Closed Won' })
+      }
+      if (user.accountId) {
+        await createOrder({
+          accountId: user.accountId,
+          opportunityId: payingQuote.OpportunityId,
+          effectiveDate: new Date().toISOString().split('T')[0],
+          status: 'Activated'
+        })
+        if (payingQuote.GrandTotal > 5000) {
+          await createContract({
+            accountId: user.accountId,
+            startDate: new Date().toISOString().split('T')[0],
+            contractTerm: 12,
+            description: "Auto-generated contract from web bulk order"
+          })
+        }
+      }
+      
+      // Notify staff
+      const opp = data.opps.find((o: any) => o.Id === payingQuote.OpportunityId)
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: `Payment Received for Quote: ${payingQuote.Name}`,
+          ownerId: opp?.OwnerId || user.accountId, // Mock fallback
+          whatId: payingQuote.OpportunityId,
+          description: `User ${user.firstName} ${user.lastName} has paid ${fmt(payingQuote.GrandTotal)} for quote ${payingQuote.Name}.`
+        })
+      })
+
+      setPayingQuote(null)
+      reloadData()
+      alert('Payment successful! Orders and Contracts generated.')
+    } catch (e: any) {
+      alert('Failed to process payment: ' + e.message)
+    } finally {
+      setPayLoading(false)
+    }
+  }
 
   return (
     <div style={{ maxWidth: 1280, margin: '40px auto 100px', padding: '0 24px' }}>
@@ -144,15 +220,38 @@ export default function DashboardPage() {
             {loading ? <SkeletonRow /> : data.quotes.length === 0 ? <p style={{ color: '#64748b' }}>No quotes found.</p> :
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {data.quotes.map((q: any) => (
-                  <div key={q.Id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8f9fc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>{q.Name}</div>
-                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{q.Opportunity?.Name}</div>
+                  <div key={q.Id} style={{ display: 'flex', flexDirection: 'column', gap: 16, background: '#f8f9fc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>{q.Name}</div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{q.Opportunity?.Name}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                        <div>
+                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{fmt(q.GrandTotal)}</div>
+                          <div style={{ fontSize: 12, color: q.Status === 'Approved' ? '#059669' : '#d97706', fontWeight: 600 }}>{q.Status}</div>
+                        </div>
+                        {q.Status === 'Draft' && (
+                          <button onClick={() => setPayingQuote(payingQuote?.Id === q.Id ? null : q)} style={{ background: '#4f46e5', color: 'white', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                            {payingQuote?.Id === q.Id ? 'Cancel' : 'Review & Pay'}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{fmt(q.GrandTotal)}</div>
-                      <div style={{ fontSize: 12, color: q.Status === 'Approved' ? '#059669' : '#d97706', fontWeight: 600 }}>{q.Status}</div>
-                    </div>
+                    
+                    {payingQuote?.Id === q.Id && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} style={{ overflow: 'hidden', borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Complete Payment</div>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                          <input disabled value="**** **** **** 4242" style={{ flex: 1, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1', background: '#f1f5f9' }} />
+                          <input disabled value="12/26" style={{ width: 60, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1', background: '#f1f5f9' }} />
+                          <input disabled value="123" style={{ width: 50, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1', background: '#f1f5f9' }} />
+                        </div>
+                        <button onClick={handlePayQuote} disabled={payLoading} style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, padding: 10, fontWeight: 600, cursor: payLoading ? 'wait' : 'pointer', transition: 'background 0.2s' }}>
+                          {payLoading ? 'Processing...' : `Pay ${fmt(q.GrandTotal)}`}
+                        </button>
+                      </motion.div>
+                    )}
                   </div>
                 ))}
               </div>

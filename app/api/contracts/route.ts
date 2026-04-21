@@ -15,10 +15,16 @@ export async function GET(request: NextRequest) {
       return apiSuccess(contracts, { total: contracts.length, source: 'mock' })
     }
 
-    const soql = 'SELECT Id, AccountId, Status, StartDate, ContractTerm, EndDate, TotalAmount, Description, OwnerId, CreatedDate FROM Contract ORDER BY CreatedDate DESC LIMIT 50'
+    let soql = 'SELECT Id, AccountId, Status, StartDate, ContractTerm, EndDate, Description, OwnerId, CreatedDate FROM Contract'
+    if (accountId) soql += ` WHERE AccountId = '${accountId}'`
+    soql += ' ORDER BY CreatedDate DESC LIMIT 50'
+    
     const result = await sfQuery<SFContract>(soql)
     return apiSuccess(result.records, { total: result.totalSize, source: 'salesforce' })
-  } catch (err) { return apiError('Failed to fetch contracts', 500) }
+  } catch (err: any) { 
+    console.error('[GET /api/contracts] Error:', err.message || err)
+    return apiError('Failed to fetch contracts: ' + (err.message || 'Unknown error'), 500) 
+  }
 }
 
 export async function POST(request: NextRequest) {

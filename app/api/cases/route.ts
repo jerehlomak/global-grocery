@@ -15,10 +15,16 @@ export async function GET(request: NextRequest) {
       return apiSuccess(cases, { total: cases.length, source: 'mock' })
     }
 
-    const soql = 'SELECT Id, CaseNumber, AccountId, ContactId, Subject, Description, Status, Priority, Origin, Type, IsEscalated, CreatedDate, LastModifiedDate FROM Case ORDER BY CreatedDate DESC LIMIT 100'
+    let soql = 'SELECT Id, CaseNumber, AccountId, ContactId, Subject, Description, Status, Priority, Origin, Type, IsEscalated, CreatedDate, LastModifiedDate FROM Case'
+    if (contactId) soql += ` WHERE ContactId = '${contactId}'`
+    soql += ' ORDER BY CreatedDate DESC LIMIT 100'
+
     const result = await sfQuery<SFCase>(soql)
     return apiSuccess(result.records, { total: result.totalSize, source: 'salesforce' })
-  } catch (err) { return apiError('Failed to fetch cases', 500) }
+  } catch (err: any) { 
+    console.error('[GET /api/cases] Error:', err.message || err)
+    return apiError('Failed to fetch cases: ' + (err.message || 'Unknown error'), 500) 
+  }
 }
 
 export async function POST(request: NextRequest) {

@@ -7,8 +7,7 @@ import { useCartStore } from '@/lib/store/cartStore'
 import { useAuthStore } from '@/lib/store/authStore'
 import { useRegionStore } from '@/lib/store/regionStore'
 import { createOpportunity, updateOpportunity } from '@/services/opportunityService'
-import { createOrder } from '@/services/orderService'
-import { createContract } from '@/services/contractService'
+import { createQuote } from '@/services/quoteService'
 import { getMockPriceBookByRegion } from '@/lib/salesforce/mock-data'
 
 export default function CheckoutPage() {
@@ -29,48 +28,39 @@ export default function CheckoutPage() {
 
   const fmt = (p: number) => new Intl.NumberFormat(summary.currency === 'NGN' ? 'en-NG' : 'en-US', { style: 'currency', currency: summary.currency }).format(p)
 
-  const proceedToPayment = async () => {
+  const requestQuote = async () => {
     setLoading(true)
     try {
       const pb = getMockPriceBookByRegion(region)
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      const timeStr = now.toTimeString().split(' ')[0].slice(0, 5)
+      const customerName = user?.company || `${user?.firstName} ${user?.lastName}`
+      const oppName = `${customerName} - Order - ${dateStr} ${timeStr}`
+      
       const res = await createOpportunity({
-        name: `Cart Order - ${new Date().toISOString().split('T')[0]}`,
+        name: oppName,
         accountId: user?.accountId,
         contactId: user?.contactId,
-        stageName: 'Negotiation/Review',
+        stageName: 'Proposal/Price Quote',
         closeDate: new Date().toISOString().split('T')[0],
         amount: summary.total,
         priceBook2Id: pb?.Id,
         leadSource: 'Web',
         lineItems: items
       })
-      setOppId(res.Id)
-      setStep(2)
-    } finally { setLoading(false) }
-  }
-
-  const handlePayment = async () => {
-    setLoading(true)
-    try {
-      if (oppId) await updateOpportunity(oppId, { StageName: 'Closed Won' })
-      else throw new Error("Opportunity ID missing")
-
-      if (user?.accountId) {
-        await createOrder({
-          accountId: user.accountId,
-          opportunityId: oppId,
-          effectiveDate: new Date().toISOString().split('T')[0],
-          status: 'Activated'
+      
+      if (res.Id) {
+        await createQuote({
+          opportunityId: res.Id,
+          name: `${oppName} - Quote`,
+          expirationDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+          discount: 0,
+          lineItems: items
         })
-        if (summary.total > 5000) {
-          await createContract({
-            accountId: user.accountId,
-            startDate: new Date().toISOString().split('T')[0],
-            contractTerm: 12,
-            description: "Auto-generated contract from web bulk order > $5K"
-          })
-        }
       }
+      
+      setOppId(res.Id)
       clearCart()
       setStep(3)
     } finally { setLoading(false) }
@@ -82,9 +72,9 @@ export default function CheckoutPage() {
     <div style={{ maxWidth: 600, margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
       <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 48, boxShadow: '0 10px 40px rgba(0,0,0,0.06)' }}>
         <CheckCircle2 size={64} color="#059669" style={{ margin: '0 auto 24px' }} />
-        <h1 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 32, fontWeight: 800, color: '#0f172a', marginBottom: 16 }}>Order Confirmed!</h1>
+        <h1 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 32, fontWeight: 800, color: '#0f172a', marginBottom: 16 }}>Quote Requested!</h1>
         <p style={{ color: '#475569', fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
-          Your order has been successfully placed. The Salesforce Opportunity is now <b>Closed Won</b>.
+          Your quote has been successfully generated and an email has been sent. Please review and pay your quote securely in the Dashboard.
         </p>
         <button onClick={() => router.push('/dashboard')} style={{ background: '#4f46e5', color: 'white', border: 'none', borderRadius: 12, padding: '14px 32px', fontSize: 16, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>Go to Dashboard</button>
       </motion.div>
@@ -100,12 +90,12 @@ export default function CheckoutPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 48, gap: 16 }}>
         <div style={{ padding: '8px 24px', borderRadius: 20, background: step === 1 ? '#4f46e5' : '#ede9fe', color: step === 1 ? 'white' : '#4f46e5', fontWeight: 600, fontSize: 14 }}>1. Review Order</div>
         <div style={{ height: 2, width: 40, background: step > 1 ? '#4f46e5' : '#e2e8f0' }} />
-        <div style={{ padding: '8px 24px', borderRadius: 20, background: step === 2 ? '#4f46e5' : '#f1f5f9', color: step === 2 ? 'white' : '#64748b', fontWeight: 600, fontSize: 14 }}>2. Payment</div>
+        <div style={{ padding: '8px 24px', borderRadius: 20, background: step === 3 ? '#4f46e5' : '#f1f5f9', color: step === 3 ? 'white' : '#64748b', fontWeight: 600, fontSize: 14 }}>2. Complete</div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(320px, 1fr)', gap: 40, alignItems: 'start' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 32, boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
-          {step === 1 ? (
+           {step === 1 && (
              <div>
                <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', marginBottom: 24 }}>Order Summary</h2>
                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -131,31 +121,7 @@ export default function CheckoutPage() {
                  </div>
                </div>
              </div>
-          ) : (
-             <div>
-               <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Payment Details</h2>
-               <p style={{ color: '#64748b', marginBottom: 32 }}>Salesforce Opportunity created successfully. Please enter payment info to close the sale.</p>
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                 <div>
-                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Card Number</label>
-                   <input disabled value="   4242" style={{ width: '100%', background: '#f8f9fc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', color: '#0f172a', fontSize: 15 }} />
-                 </div>
-                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                   <div>
-                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Expiry</label>
-                     <input disabled value="12/26" style={{ width: '100%', background: '#f8f9fc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', color: '#0f172a', fontSize: 15 }} />
-                   </div>
-                   <div>
-                     <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>CVC</label>
-                     <input disabled value="" style={{ width: '100%', background: '#f8f9fc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', color: '#0f172a', fontSize: 15 }} />
-                   </div>
-                 </div>
-                 <div style={{ background: '#ecfdf5', color: '#065f46', padding: 12, borderRadius: 8, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center', marginTop: 16 }}>
-                   <ShieldCheck size={16} /> <span>This is a mock payment for demonstration.</span>
-                 </div>
-               </div>
-             </div>
-          )}
+           )}
         </motion.div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'sticky', top: 100 }}>
@@ -167,19 +133,15 @@ export default function CheckoutPage() {
                 <span style={{ fontSize: 13, color: step > 1 ? '#0f172a' : '#64748b' }}>Create Opportunity</span>
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <CheckCircle2 color={step === 3 ? "#059669" : "#cbd5e1"} size={18} />
-                <span style={{ fontSize: 13, color: step === 3 ? '#0f172a' : '#64748b' }}>Close Won Opportunity</span>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <CheckCircle2 color={step === 3 ? "#059669" : "#cbd5e1"} size={18} />
-                <span style={{ fontSize: 13, color: step === 3 ? '#0f172a' : '#64748b' }}>Generate Order / Contract</span>
+                <CheckCircle2 color={step > 1 ? "#059669" : "#cbd5e1"} size={18} />
+                <span style={{ fontSize: 13, color: step > 1 ? '#0f172a' : '#64748b' }}>Generate Quote & Email</span>
               </div>
             </div>
             
-            <button onClick={step === 1 ? proceedToPayment : handlePayment} disabled={loading}
+            <button onClick={requestQuote} disabled={loading}
               style={{ width: '100%', marginTop: 24, background: '#10b981', color: 'white', border: 'none', borderRadius: 12, padding: 16, fontSize: 16, fontWeight: 600, cursor: loading ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(16,185,129,0.3)', transition: 'background 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#059669'} onMouseLeave={e => e.currentTarget.style.background = '#10b981'}>
-              {loading ? 'Processing...' : step === 1 ? 'Continue to Payment' : `Pay ${fmt(summary.total)}`}
+              {loading ? 'Processing...' : 'Request Quote'}
             </button>
           </div>
         </div>

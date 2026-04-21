@@ -50,14 +50,20 @@ export async function POST(request: NextRequest) {
     if (contactResult.totalSize === 0) return apiError('Invalid credentials', 401)
 
     const contact = contactResult.records[0]
-    const isB2C = contact.Account?.IsPersonAccount
+    const isB2C = !contact.Account?.Name || contact.Account?.IsPersonAccount
     
     const user: AuthUser = {
-      id: contact.Id, email: contact.Email, firstName: contact.FirstName,
-      lastName: contact.LastName || '', accountId: contact.AccountId, contactId: contact.Id,
-      company: isB2C ? '' : (contact.Account?.Name || ''),
-      isConverted: true, accountType: isB2C ? 'b2c' : 'b2b',
+      id: contact.Id,
+      email: contact.Email,
+      firstName: contact.FirstName || '',
+      lastName: contact.LastName || '',
+      accountId: contact.AccountId,
+      contactId: contact.Id,
+      company: contact.Account?.Name || '',
+      isConverted: true,
+      accountType: isB2C ? 'b2c' : 'b2b',
     }
+    console.log('[Login] Resolved user:', { accountId: user.accountId, contactId: user.contactId, company: user.company })
     return apiSuccess({ user, token: 'sf-jwt-' + contact.Id }, { source: 'salesforce' })
   } catch (err) {
     console.error('[/api/auth/login]', err)

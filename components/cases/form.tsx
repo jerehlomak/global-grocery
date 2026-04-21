@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Send, CheckCircle2, User, Mail, Phone, FileText, AlignLeft } from 'lucide-react'
 
-const SF_ACTION = 'https://webto.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8&orgId=00Dd200000gnjBt'
+const SF_ACTION = 'https://webto.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8&orgId=00Dd200000eNvL7'
 
 const INIT = { name: '', email: '', phone: '', subject: '', description: '' }
 
@@ -128,9 +128,8 @@ export default function CaseSupportForm() {
       style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
     >
       {/* Salesforce hidden fields */}
-      <input type="hidden" name="orgid" value="00Dd200000gnjBt" />
-      <input type="hidden" name="retURL" value={typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'} />
-      <input type="hidden" id="external" name="external" value="1" />
+      <input type="hidden" name="orgid" value="00Dd200000eNvL7" />
+      <input type="hidden" name="retURL" value="https://global-grocery.vercel.app" />
 
       {/* Contact Name */}
       <Field id="case_name" label="Contact Name" icon={<User size={15} />}>

@@ -23,8 +23,8 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(79,70,229,0.12)' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
         >
-          <div style={{ position: 'relative', height: 180, overflow: 'hidden' }}>
-            <img src={product.imageUrl || '/placeholder-product.png'} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+          <div style={{ position: 'relative', height: 180, overflow: 'hidden', padding: 20, background: '#fff' }}>
+            <img src={product.imageUrl || '/placeholder-product.png'} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', transition: 'transform 0.4s' }}
               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
               onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
             />
