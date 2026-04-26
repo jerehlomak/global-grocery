@@ -9,7 +9,7 @@ export async function PATCH(
   try {
     const { id } = await params
 
-    if (!id) return apiError('Quote id is required')
+    if (!id) return apiError('Opportunity id is required')
 
     const body = await request.json()
 
@@ -17,14 +17,14 @@ export async function PATCH(
       return apiSuccess({ id, success: true }, { source: 'mock' })
     }
 
-    const res = await sfUpdate('Quote', id, body)
+    const res = await sfUpdate('Opportunity', id, body)
     if (res && !res.success) {
-      return apiError(res.errors?.[0]?.message || 'Update quote failed')
+      return apiError(res.errors?.[0]?.message || 'Update opportunity failed')
     }
 
     return apiSuccess({ id, success: true }, { source: 'salesforce' })
   } catch (err: any) {
-    console.error('[/api/quotes/[id]]', err)
-    return apiError('Failed to update quote', 500)
+    console.error('[/api/opportunities/[id]]', err)
+    return apiError('Failed to update opportunity', 500)
   }
 }

@@ -1,8 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Book, MessageSquare, FileText, Star } from 'lucide-react'
-import { fetchKnowledgeArticles, fetchFeaturedArticles } from '@/services/knowledgeService'
+import { Search, Book, MessageSquare, FileText } from 'lucide-react'
+import {
+  fetchKnowledgeArticles,
+  fetchFeaturedArticles,
+  fetchKnowledgeCategories,
+  type KnowledgeCategory,
+} from '@/services/knowledgeService'
 import type { SFKnowledgeArticle } from '@/types/salesforce'
 import LastSynced from '@/components/shared/LastSynced'
 import { SkeletonRow } from '@/components/shared/SkeletonLoader'
@@ -14,13 +19,28 @@ export default function HelpPage() {
   const [featured, setFeatured] = useState<SFKnowledgeArticle[]>([])
   const [featuredLoading, setFeaturedLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [cat, setCat] = useState('All')
+  const [cat, setCat] = useState<string>('All')
   const [lastSynced, setLastSynced] = useState<string>()
+  const [categories, setCategories] = useState<KnowledgeCategory[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+
+  // Load Salesforce data categories once on mount
+  useEffect(() => {
+    fetchKnowledgeCategories()
+      .then(setCategories)
+      .catch((err) => {
+        console.error('Failed to load knowledge categories:', err)
+        setCategories([])
+      })
+      .finally(() => setCategoriesLoading(false))
+  }, [])
 
   const load = async () => {
     setLoading(true)
     try {
-      const data = await fetchKnowledgeArticles(search || undefined, cat === 'All' ? undefined : cat)
+      // When a non-All category is selected, pass its Salesforce API name (e.g. 'Pricing__c')
+      const categoryParam = cat === 'All' ? undefined : cat
+      const data = await fetchKnowledgeArticles(search || undefined, categoryParam)
       setArticles(data)
       setLastSynced(new Date().toISOString())
     } finally { setLoading(false) }
@@ -60,35 +80,15 @@ export default function HelpPage() {
         @media (max-width: 1024px) {
           .help-main-grid { grid-template-columns: 1fr; }
         }
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
       `}</style>
+
       <div className="help-main-grid">
         {/* Knowledge Articles Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-          {/* Featured Articles Section */}
-          {/* <div style={{ marginBottom: 16 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <Star size={24} color="#f59e0b" fill="#f59e0b" /> Featured Articles
-            </h2>
-            <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-              {featuredLoading ? Array.from({ length: 2 }).map((_, i) => <div key={i}><SkeletonRow /></div>) :
-               featured.length === 0 ? <div style={{ color: '#64748b', fontSize: 14 }}>No featured articles found.</div> :
-               featured.map((art, i) => (
-                 <motion.a key={art.Id} href={`/help/${art.Id}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                   style={{ display: 'flex', gap: 16, padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}
-                   onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.transform = 'translateY(-2px)' }} 
-                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.transform = 'none' }}>
-                   <div style={{ background: '#fef3c7', width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                     <Star size={20} color="#d97706" />
-                   </div>
-                   <div>
-                     <h3 style={{ color: '#0f172a', fontWeight: 700, fontSize: 16, marginBottom: 6, lineHeight: 1.3 }}>{art.Title}</h3>
-                     <p style={{ color: '#64748b', fontSize: 13, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{art.Summary}</p>
-                   </div>
-                 </motion.a>
-               ))}
-            </div>
-          </div> */}
 
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 24, paddingTop: 24, borderTop: '1px solid #e2e8f0' }}>
             <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -97,13 +97,63 @@ export default function HelpPage() {
             <LastSynced timestamp={lastSynced} onRefresh={load} />
           </div>
 
+          {/* Dynamic category filter tabs from Salesforce */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
-            {['All', 'Ordering', 'Pricing', 'Shipping', 'Support', 'B2B', 'Payments'].map(c => (
-              <button key={c} onClick={() => setCat(c)}
-                style={{ background: cat === c ? '#4f46e5' : '#fff', border: '1px solid ' + (cat === c ? '#4f46e5' : '#cbd5e1'), borderRadius: 20, padding: '6px 16px', color: cat === c ? 'white' : '#475569', cursor: 'pointer', fontSize: 13, fontWeight: cat === c ? 600 : 500, whiteSpace: 'nowrap' }}>
-                {c}
-              </button>
-            ))}
+            {/* Always show the "All" tab */}
+            <button
+              onClick={() => setCat('All')}
+              style={{
+                background: cat === 'All' ? '#4f46e5' : '#fff',
+                border: '1px solid ' + (cat === 'All' ? '#4f46e5' : '#cbd5e1'),
+                borderRadius: 20,
+                padding: '6px 16px',
+                color: cat === 'All' ? 'white' : '#475569',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: cat === 'All' ? 600 : 500,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              All
+            </button>
+
+            {/* Skeleton placeholders while categories load */}
+            {categoriesLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: 72 + (i % 3) * 16,
+                      height: 32,
+                      borderRadius: 20,
+                      background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+                      backgroundSize: '200% 100%',
+                      animation: 'shimmer 1.4s infinite',
+                    }}
+                  />
+                ))
+              : categories.map((c, i) => (
+                  <motion.button
+                    key={c.name}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => setCat(c.name)}
+                    style={{
+                      background: cat === c.name ? '#4f46e5' : '#fff',
+                      border: '1px solid ' + (cat === c.name ? '#4f46e5' : '#cbd5e1'),
+                      borderRadius: 20,
+                      padding: '6px 16px',
+                      color: cat === c.name ? 'white' : '#475569',
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      fontWeight: cat === c.name ? 600 : 500,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {c.label}
+                  </motion.button>
+                ))}
           </div>
 
           <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>

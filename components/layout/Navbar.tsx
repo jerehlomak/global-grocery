@@ -42,7 +42,7 @@ export default function Navbar() {
           <Link href="/products" style={{ color: '#475569', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Products</Link>
           <Link href="/help" style={{ color: '#475569', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Help</Link>
           {user && <Link href="/dashboard" style={{ color: '#475569', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Dashboard</Link>}
-          {user && <Link href="/admin" style={{ color: '#475569', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Admin</Link>}
+          {/* {user && <Link href="/admin" style={{ color: '#475569', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Admin</Link>} */}
         </div>
 
         {/* Desktop Actions */}

@@ -24,7 +24,7 @@ export async function fetchOpportunity(id: string): Promise<SFOpportunity> {
 export async function createOpportunity(data: {
   name: string; accountId?: string; contactId?: string; stageName?: string;
   closeDate: string; amount: number; priceBook2Id?: string; leadSource?: string;
-  lineItems: CartItem[];
+  lineItems: CartItem[]; currencyIsoCode?: string;
 }): Promise<Partial<SFOpportunity>> {
   const res = await fetch(`${BASE}/opportunities`, {
     method: 'POST',

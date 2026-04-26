@@ -4,8 +4,9 @@ import { MOCK_KNOWLEDGE_ARTICLES } from '@/lib/salesforce/mock-data'
 import { sfQuery } from '@/lib/salesforce/client'
 import type { SFKnowledgeArticle } from '@/types/salesforce'
 
-// Define Data Category mappings. Update these API names to match your Salesforce Org's exact configuration.
-const DATA_CATEGORY_GROUP = 'JayTech_Group__c' // Pulled from your live Salesforce org
+// SOQL WITH DATA CATEGORY requires the developer name WITH __c suffix
+// (the dataCategoryGroups REST API returns names WITHOUT __c, but SOQL needs it)
+const DATA_CATEGORY_GROUP = 'Global_Grocery_Support_Topics__c'
 const FEATURED_CATEGORY_NAME = 'Featured__c'   // e.g. 'Featured_Articles__c'
 
 export async function GET(request: NextRequest) {
@@ -41,8 +42,10 @@ export async function GET(request: NextRequest) {
     if (isFeatured) {
       soql += ` WITH DATA CATEGORY ${DATA_CATEGORY_GROUP} AT (${FEATURED_CATEGORY_NAME})`
     } else if (category && category !== 'All') {
-      // Attempt to sanitize frontend category string to a valid API Name (e.g., 'Pricing' -> 'Pricing__c')
-      const categoryApiName = category.replace(/[^a-zA-Z0-9]/g, '_') + '__c'
+      // The REST dataCategoryGroups API returns names WITHOUT __c (e.g. 'Shipping_and_Delivery')
+      // but SOQL WITH DATA CATEGORY requires them WITH __c suffix
+      const rawName = category.replace(/[^a-zA-Z0-9_]/g, '')
+      const categoryApiName = rawName.endsWith('__c') ? rawName : rawName + '__c'
       soql += ` WITH DATA CATEGORY ${DATA_CATEGORY_GROUP} AT (${categoryApiName})`
     }
 

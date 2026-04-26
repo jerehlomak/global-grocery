@@ -47,7 +47,8 @@ export default function CheckoutPage() {
         amount: summary.total,
         priceBook2Id: pb?.Id,
         leadSource: 'Web',
-        lineItems: items
+        lineItems: items,
+        currencyIsoCode: summary.currency
       })
       
       if (res.Id) {

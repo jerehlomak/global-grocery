@@ -134,6 +134,14 @@ export const MOCK_KNOWLEDGE_ARTICLES: SFKnowledgeArticle[] = [
   { Id:"ka0000006",Title:"Payment Methods & Invoice Requests",Summary:"Accepted payment methods, how to request invoices, and payment terms.",UrlName:"payment-methods",Categories:["Payments","Billing"],CreatedDate:"2026-02-15T00:00:00Z" },
 ]
 
+export const MOCK_KNOWLEDGE_CATEGORIES = [
+  { label: 'Product Issues',     name: 'product_issues'      },
+  { label: 'Shipping and Delivery', name: 'Shipping_and_Delivery' },
+  { label: 'Returns and Refunds',   name: 'Returns_and_Refunds'   },
+  { label: 'Account Management',    name: 'Account_Management'    },
+  { label: 'General Enquiries',     name: 'General_Enquiries'     },
+]
+
 export function getMockEntriesForPriceBook(priceBookId: string) {
   return MOCK_PRICE_BOOK_ENTRIES.filter(e => e.PriceBook2Id === priceBookId)
 }

@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/lib/store/authStore'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { DollarSign, FileText, Package, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { DollarSign, FileText, Package, AlertCircle, X } from 'lucide-react'
 import { fetchOpportunities, updateOpportunity } from '@/services/opportunityService'
 import { fetchQuotes, updateQuote } from '@/services/quoteService'
 import { fetchOrders, createOrder } from '@/services/orderService'
@@ -59,12 +59,16 @@ export default function DashboardPage() {
 
   const reloadData = () => fetchData()
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   useEffect(() => {
+    if (!mounted) return
     if (!user) { router.push('/login'); return }
     fetchData()
-  }, [user, router])
+  }, [user, router, mounted])
 
-  if (!user) return null
+  if (!mounted || !user) return null
 
   const fmt = (p: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p)
 
@@ -81,16 +85,8 @@ export default function DashboardPage() {
           accountId: user.accountId,
           opportunityId: payingQuote.OpportunityId,
           effectiveDate: new Date().toISOString().split('T')[0],
-          status: 'Activated'
+          status: 'Draft'
         })
-        if (payingQuote.GrandTotal > 5000) {
-          await createContract({
-            accountId: user.accountId,
-            startDate: new Date().toISOString().split('T')[0],
-            contractTerm: 12,
-            description: "Auto-generated contract from web bulk order"
-          })
-        }
       }
       
       // Notify staff
@@ -99,16 +95,16 @@ export default function DashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: `Payment Received for Quote: ${payingQuote.Name}`,
+          subject: `Payment Received for Quote: ${payingQuote.Name} - Please Send Contract`,
           ownerId: opp?.OwnerId || user.accountId, // Mock fallback
           whatId: payingQuote.OpportunityId,
-          description: `User ${user.firstName} ${user.lastName} has paid ${fmt(payingQuote.GrandTotal)} for quote ${payingQuote.Name}.`
+          description: `User ${user.firstName} ${user.lastName} has paid ${fmt(payingQuote.GrandTotal)} for quote ${payingQuote.Name}. Please generate and send the contract to the customer.`
         })
       })
 
       setPayingQuote(null)
       reloadData()
-      alert('Payment successful! Orders and Contracts generated.')
+      alert('Payment successful! Order generated and staff notified to send the contract.')
     } catch (e: any) {
       alert('Failed to process payment: ' + e.message)
     } finally {
@@ -238,20 +234,6 @@ export default function DashboardPage() {
                         )}
                       </div>
                     </div>
-                    
-                    {payingQuote?.Id === q.Id && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} style={{ overflow: 'hidden', borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Complete Payment</div>
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                          <input disabled value="**** **** **** 4242" style={{ flex: 1, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1', background: '#f1f5f9' }} />
-                          <input disabled value="12/26" style={{ width: 60, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1', background: '#f1f5f9' }} />
-                          <input disabled value="123" style={{ width: 50, padding: 8, borderRadius: 6, border: '1px solid #cbd5e1', background: '#f1f5f9' }} />
-                        </div>
-                        <button onClick={handlePayQuote} disabled={payLoading} style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, padding: 10, fontWeight: 600, cursor: payLoading ? 'wait' : 'pointer', transition: 'background 0.2s' }}>
-                          {payLoading ? 'Processing...' : `Pay ${fmt(q.GrandTotal)}`}
-                        </button>
-                      </motion.div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -277,6 +259,42 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Quote Payment Modal */}
+      <AnimatePresence>
+        {payingQuote && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 800, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+              
+              {/* Header */}
+              <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#0f172a' }}>Review Quote: {payingQuote.Name}</h3>
+                <button onClick={() => setPayingQuote(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+              </div>
+
+              {/* PDF Viewer */}
+              <div style={{ height: '60vh', minHeight: 400, background: '#f8fafc', position: 'relative' }}>
+                <iframe src={`/api/quotes/${payingQuote.Id}/pdf#view=FitH`} style={{ display: 'block', width: '100%', height: '100%', border: 'none' }} title="Quote PDF" />
+              </div>
+
+              {/* Footer / Payment */}
+              <div style={{ padding: '24px', borderTop: '1px solid #e2e8f0', background: '#fff' }}>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: '#0f172a' }}>Complete Payment</div>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                  <input disabled value="**** **** **** 4242" style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569' }} />
+                  <input disabled value="12/26" style={{ width: 80, padding: '10px 14px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', textAlign: 'center' }} />
+                  <input disabled value="123" style={{ width: 60, padding: '10px 14px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', textAlign: 'center' }} />
+                </div>
+                <button onClick={handlePayQuote} disabled={payLoading} style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, padding: '12px', fontSize: 15, fontWeight: 600, cursor: payLoading ? 'wait' : 'pointer', transition: 'background 0.2s', display: 'flex', justifyContent: 'center', gap: 8 }}>
+                  {payLoading ? 'Processing...' : `Confirm & Pay ${fmt(payingQuote.GrandTotal)}`}
+                </button>
+              </div>
+
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }

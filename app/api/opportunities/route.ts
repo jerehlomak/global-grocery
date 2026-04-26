@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, accountId, contactId, stageName = 'Prospecting', closeDate, amount, priceBook2Id, leadSource, description, lineItems = [] } = body
+    const { name, accountId, contactId, stageName = 'Prospecting', closeDate, amount, priceBook2Id, leadSource, description, lineItems = [], currencyIsoCode } = body
     if (!name || !closeDate) return apiError('name and closeDate are required')
 
     if (isMockMode()) {
@@ -68,9 +68,7 @@ export async function POST(request: NextRequest) {
       Description: description,
     }
 
-    // Note: Do NOT set Pricebook2Id or CurrencyIsoCode here.
-    // Salesforce will auto-assign the Standard Price Book.
-    // Setting CurrencyIsoCode fails on orgs without multi-currency.
+    if (currencyIsoCode) oppPayload.CurrencyIsoCode = currencyIsoCode;
 
     const result = await sfCreate('Opportunity', oppPayload)
 
