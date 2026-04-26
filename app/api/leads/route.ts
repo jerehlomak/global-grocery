@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const lastName = body.last_name ?? body.lastName ?? ''
     const email = body.email ?? ''
     const phone = body.phone ?? ''
-    const company = body.company ?? body.firstName + ' ' + body.lastName ?? ''
+    const company = body.company || (firstName + ' ' + lastName).trim()
     const employees = body.employees ?? ''
     const industry = body.industry ?? body['00Nd200001xsj0r'] ?? ''
     const region = body.region ?? body['00Nd200001xgsHd'] ?? ''
