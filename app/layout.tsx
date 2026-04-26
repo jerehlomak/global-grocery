@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CartDrawer from '@/components/cart/CartDrawer'
 import LiveChatPlaceholder from '@/components/shared/LiveChatPlaceholder'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'GlobalGrocery  Enterprise Grocery eCommerce',

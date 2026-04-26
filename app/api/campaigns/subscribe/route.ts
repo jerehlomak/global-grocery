@@ -5,14 +5,21 @@ import { sfQuery, sfCreate } from '@/lib/salesforce/client'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { campaignId, firstName, lastName, email, phone, company } = body
+    const { campaignId, firstName, lastName, email, phone, company, region } = body
 
-    if (!campaignId || !email || !lastName) {
-      return apiError('Missing required fields: CampaignId, Email, and LastName are critical.', 400)
+    if (!campaignId || !email || !lastName || !phone || !region) {
+      return apiError('Missing required fields: CampaignId, Email, LastName, Phone, and Region are critical.', 400)
     }
 
     let contactId = null
     let leadId = null
+
+    const regionMap: Record<string, string> = {
+      'NG': 'Africa',
+      'UK': 'Europe',
+      'US': 'North America'
+    };
+    const mappedRegion = regionMap[region] || region;
 
     // 1. Search for existing Contact by Email
     const contactQuery = await sfQuery<any>(`SELECT Id FROM Contact WHERE Email = '${email}' LIMIT 1`)
@@ -31,6 +38,8 @@ export async function POST(request: NextRequest) {
           LastName: lastName,
           Email: email,
           Phone: phone,
+          Country: region,
+          Region__c: mappedRegion,
           Company: fallbackCompany,
           LeadSource: 'Partner Referral' // A standard source, adjust appropriately
         }

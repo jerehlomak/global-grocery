@@ -11,7 +11,7 @@ type CampaignSubscribeModalProps = {
 }
 
 export default function CampaignSubscribeModal({ isOpen, onClose, campaignId, campaignName }: CampaignSubscribeModalProps) {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', company: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', company: '', region: '' })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -37,7 +37,7 @@ export default function CampaignSubscribeModal({ isOpen, onClose, campaignId, ca
         setTimeout(() => {
           onClose()
           setStatus('idle')
-          setForm({ firstName: '', lastName: '', email: '', phone: '', company: '' })
+          setForm({ firstName: '', lastName: '', email: '', phone: '', company: '', region: '' })
         }, 2500)
       } else {
         setStatus('error')
@@ -104,8 +104,18 @@ export default function CampaignSubscribeModal({ isOpen, onClose, campaignId, ca
                 <input required type="email" placeholder="Email Address" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
                   style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none', fontSize: 15 }} />
                 
-                <input type="tel" placeholder="Phone Number (Optional)" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
-                  style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none', fontSize: 15 }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <input required type="tel" placeholder="Phone Number" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
+                    style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none', fontSize: 15 }} />
+                  
+                  <select required value={(form as any).region || ''} onChange={e => setForm({...form, region: e.target.value})}
+                    style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none', fontSize: 15, background: '#fff', color: (form as any).region ? '#0f172a' : '#94a3b8' }}>
+                    <option value="" disabled hidden>Select Region</option>
+                    <option value="US" style={{ color: '#0f172a' }}>United States (US)</option>
+                    <option value="UK" style={{ color: '#0f172a' }}>United Kingdom (UK)</option>
+                    <option value="NG" style={{ color: '#0f172a' }}>Nigeria (NG)</option>
+                  </select>
+                </div>
                 
                 <input placeholder="Company Name (Optional)" value={form.company} onChange={e => setForm({...form, company: e.target.value})}
                   style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #cbd5e1', outline: 'none', fontSize: 15 }} />

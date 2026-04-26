@@ -154,8 +154,15 @@ export default function ProductsPage() {
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 24px' }}>
 
       {/* Header */}
+      <style>{`
+        @media (max-width: 640px) {
+          .products-heading { text-align: center !important; font-size: 28px !important; }
+          .products-controls { flex-direction: column !important; }
+          .products-controls > * { width: 100%; }
+        }
+      `}</style>
       <div style={{ marginBottom: 32 }}>
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="products-heading"
           style={{ fontFamily: 'Outfit, sans-serif', fontSize: 36, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>
           Our Products
         </motion.h1>
@@ -170,7 +177,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Controls Row */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="products-controls" style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
         <RegionPricingToggle />
 
         {/* Search */}

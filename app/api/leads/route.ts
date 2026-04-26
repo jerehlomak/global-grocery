@@ -19,25 +19,54 @@ export async function GET(_req: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { firstName, lastName, email, phone, company, leadSource, campaignId, country } = body
-    if (!firstName || !lastName || !email) return apiError('firstName, lastName and email are required')
+
+    // Accept both Web-to-Lead snake_case names AND camelCase names for flexibility
+    const firstName = body.first_name ?? body.firstName ?? ''
+    const lastName = body.last_name ?? body.lastName ?? ''
+    const email = body.email ?? ''
+    const phone = body.phone ?? ''
+    const company = body.company ?? body.firstName + ' ' + body.lastName ?? ''
+    const employees = body.employees ?? ''
+    const industry = body.industry ?? body['00Nd200001xsj0r'] ?? ''
+    const region = body.region ?? body['00Nd200001xgsHd'] ?? ''
+    const productInterest = body.product_interest ?? body['00Nd200001sDrWz'] ?? ''
+
+    if (!lastName || !email || !company) {
+      return apiError('last_name, email, and company are required', 400)
+    }
+
     if (isMockMode()) {
       const lead: Partial<SFLead> = {
-        Id: '00Q' + Date.now(), FirstName: firstName, LastName: lastName, Email: email,
-        Phone: phone, Company: company || firstName + ' ' + lastName,
-        Status: 'Open - Not Contacted', LeadSource: leadSource || 'Web',
-        Rating: 'Cold', Lead_Score__c: 10, IsConverted: false,
-        Country: country, CampaignId: campaignId, CreatedDate: new Date().toISOString(),
+        Id: '00Q' + Date.now(), FirstName: firstName, LastName: lastName, Email: email, Phone: phone,
+        Company: company, Status: 'Open - Not Contacted', LeadSource: 'Web',
+        IsConverted: false, CreatedDate: new Date().toISOString(),
       }
       return apiSuccess(lead, { source: 'mock' })
     }
-    // LIVE SF: Create Lead record
-    const result = await sfCreate('Lead', {
-      FirstName: firstName, LastName: lastName, Email: email, Phone: phone,
-      Company: company || firstName + ' ' + lastName,
-      Status: 'Open - Not Contacted', LeadSource: leadSource || 'Web',
-      Country: country,
-    })
+
+    // Build the payload using the exact Salesforce field API names
+    const leadPayload: Record<string, any> = {
+      FirstName: firstName,
+      LastName: lastName,
+      Email: email,
+      Phone: phone,
+      Company: company,
+      LeadSource: 'Web',
+    }
+
+    if (employees) {
+      const parsed = parseInt(employees, 10)
+      if (!isNaN(parsed)) leadPayload.NumberOfEmployees = parsed
+    }
+    if (industry)        leadPayload.Industry__c = industry
+    if (region)          leadPayload.Region__c = region
+    if (productInterest) leadPayload.ProductInterest__c = productInterest
+
+    const result = await sfCreate('Lead', leadPayload)
+    console.log('[POST /api/leads] Lead created:', result.id)
     return apiSuccess({ id: result.id, success: result.success }, { source: 'salesforce' })
-  } catch (err) { return apiError('Failed to create lead', 500) }
+  } catch (err: any) {
+    console.error('[POST /api/leads]', err)
+    return apiError('Failed to create lead: ' + (err.message || 'Unknown error'), 500)
+  }
 }
