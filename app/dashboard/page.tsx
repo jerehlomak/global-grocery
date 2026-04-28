@@ -38,7 +38,7 @@ export default function DashboardPage() {
       fetchStages()
     ])
     const [opps, quotes, orders, contracts, cases, stages] = results.map(r => r.status === 'fulfilled' ? r.value : [])
-    setData({ opps: opps||[], quotes: quotes||[], orders: orders||[], contracts: contracts||[], cases: cases||[], stages: stages||[] })
+    setData({ opps: opps || [], quotes: quotes || [], orders: orders || [], contracts: contracts || [], cases: cases || [], stages: stages || [] })
     setLoading(false)
   }
 
@@ -87,11 +87,11 @@ export default function DashboardPage() {
   const SIDEBARW = 240
 
   const statCards = [
-    { icon: DollarSign, label: 'Opportunities', value: data.opps.length,      color: '#4f46e5', bg: '#ede9fe', section: 'opportunities' as Section },
-    { icon: FileText,   label: 'Quotes',        value: data.quotes.length,    color: '#d97706', bg: '#fef3c7', section: 'quotes' as Section },
-    { icon: Package,    label: 'Orders',        value: data.orders.length,    color: '#059669', bg: '#d1fae5', section: 'orders' as Section },
-    { icon: AlertCircle,label: 'Open Cases',   value: data.cases.length,     color: '#dc2626', bg: '#fee2e2', section: 'cases' as Section },
-    { icon: FileCheck,  label: 'Contracts',    value: data.contracts.length, color: '#0891b2', bg: '#cffafe', section: 'contracts' as Section },
+    { icon: DollarSign, label: 'Opportunities', value: data.opps.length, color: '#4f46e5', bg: '#ede9fe', section: 'opportunities' as Section },
+    { icon: FileText, label: 'Quotes', value: data.quotes.length, color: '#d97706', bg: '#fef3c7', section: 'quotes' as Section },
+    { icon: Package, label: 'Orders', value: data.orders.length, color: '#059669', bg: '#d1fae5', section: 'orders' as Section },
+    { icon: AlertCircle, label: 'Open Cases', value: data.cases.length, color: '#dc2626', bg: '#fee2e2', section: 'cases' as Section },
+    { icon: FileCheck, label: 'Contracts', value: data.contracts.length, color: '#0891b2', bg: '#cffafe', section: 'contracts' as Section },
   ]
 
   const card = (children: React.ReactNode, id?: string) => (
@@ -169,7 +169,9 @@ export default function DashboardPage() {
 
           {/* Content Sections */}
           <div className={activeSection === 'overview' ? 'db-overview-grid' : ''}>
-            {(activeSection === 'opportunities') && (
+
+            {/* ✅ FIXED: was missing 'overview' in the outer condition */}
+            {/* {(activeSection === 'overview' || activeSection === 'opportunities') && (
               <div style={{ marginBottom: 24 }}>
                 {card(<>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -196,7 +198,7 @@ export default function DashboardPage() {
                   }
                 </>)}
               </div>
-            )}
+            )} */}
 
             {(activeSection === 'overview' || activeSection === 'quotes') && (
               <div style={{ marginBottom: 24 }}>
@@ -247,7 +249,7 @@ export default function DashboardPage() {
                     <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                         <thead style={{ background: '#f8f9fc', color: '#64748b', fontSize: 12 }}>
-                          <tr>{['Effective Date','Status','Created'].map(h => <th key={h} style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase' }}>{h}</th>)}</tr>
+                          <tr>{['Effective Date', 'Status', 'Created'].map(h => <th key={h} style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase' }}>{h}</th>)}</tr>
                         </thead>
                         <tbody>
                           {(activeSection === 'overview' ? data.orders.slice(0, 4) : data.orders).map((o: any) => (
@@ -304,7 +306,7 @@ export default function DashboardPage() {
                     <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                         <thead style={{ background: '#f8f9fc', color: '#64748b', fontSize: 12 }}>
-                          <tr>{['Start Date','Term','Status'].map(h => <th key={h} style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase' }}>{h}</th>)}</tr>
+                          <tr>{['Start Date', 'Term', 'Status'].map(h => <th key={h} style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase' }}>{h}</th>)}</tr>
                         </thead>
                         <tbody>
                           {(activeSection === 'overview' ? data.contracts.slice(0, 4) : data.contracts).map((c: any) => (
