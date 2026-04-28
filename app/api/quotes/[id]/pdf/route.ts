@@ -15,7 +15,15 @@ export async function GET(
     const result = await sfQuery<{ Id: string; Document: string }>(soql)
 
     if (result.totalSize === 0) {
-      return NextResponse.json({ error: 'No PDF document found for this quote' }, { status: 404 })
+      // Return a friendly HTML page inside the iframe instead of a raw JSON error
+      const html = `<!DOCTYPE html><html><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8fafc;color:#475569;">
+        <div style="text-align:center;">
+          <div style="font-size:48px;margin-bottom:16px;">📄</div>
+          <h2 style="margin:0 0 8px;color:#0f172a;">No PDF Available</h2>
+          <p style="margin:0;">This quote does not have a generated PDF document yet.<br/>The agent may need to generate a quote document in Salesforce.</p>
+        </div>
+      </body></html>`
+      return new NextResponse(html, { headers: { 'Content-Type': 'text/html' }, status: 200 })
     }
 
     const documentUri = result.records[0].Document

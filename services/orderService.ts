@@ -12,7 +12,15 @@ export async function fetchOrders(accountId?: string): Promise<SFOrder[]> {
   return json.data || []
 }
 
-export async function createOrder(data: { accountId?: string; opportunityId?: string; effectiveDate: string; status?: string }): Promise<Partial<SFOrder>> {
+export async function createOrder(data: { 
+  accountId?: string
+  opportunityId?: string
+  quoteId?: string
+  contractId?: string
+  effectiveDate: string
+  status?: string
+  description?: string
+}): Promise<Partial<SFOrder>> {
   const res = await fetch(`${BASE}/orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
   const json: ApiResponse<Partial<SFOrder>> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to create order')

@@ -21,9 +21,6 @@ export async function getSalesforceToken() {
     }),
   });
 
-  console.log("res-------------------------------")
-  console.log(res)
-  console.log("res-------------------------------")
 
   if (!res.ok) {
     const err = await res.text();

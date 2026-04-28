@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Providers from '@/components/Providers'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import ShellWrapper from '@/components/layout/ShellWrapper'
 import CartDrawer from '@/components/cart/CartDrawer'
 import LiveChatPlaceholder from '@/components/shared/LiveChatPlaceholder'
-import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'GlobalGrocery  Enterprise Grocery eCommerce',
@@ -17,11 +15,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='en'>
       <body style={{ background: '#f8f9fc', color: '#0f172a' }}>
         <Providers>
-          <Navbar />
-          <CartDrawer />
-          <main style={{ minHeight: '80vh' }}>{children}</main>
-          <Footer />
-          <LiveChatPlaceholder />
+          <ShellWrapper>
+            <CartDrawer />
+            <main style={{ minHeight: '80vh' }}>{children}</main>
+            <LiveChatPlaceholder />
+          </ShellWrapper>
         </Providers>
       </body>
     </html>
