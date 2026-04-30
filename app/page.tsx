@@ -302,7 +302,9 @@ export default function HomePage() {
           >
             <div style={{ marginBottom: 28 }}>
               <h3 style={{ color: '#fff', fontWeight: 700, fontSize: 20, marginBottom: 6 }}>Get in Touch</h3>
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Fill out the form and we'll connect you with a sales representative.</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
+                Fill out the form or reach us directly at <a href="mailto:globalgrocery247@gmail.com" style={{ color: '#a78bfa', textDecoration: 'none' }}>globalgrocery247@gmail.com</a>.
+              </p>
             </div>
             <WebToLeadForm />
           </motion.div>

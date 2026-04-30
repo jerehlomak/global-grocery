@@ -182,7 +182,7 @@ export default function HelpPage() {
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 32, position: 'sticky', top: 100, boxShadow: '0 10px 40px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a' }}>Contact Support</h2>
-            <p style={{ color: '#64748b', fontSize: 13 }}>Submit a case directly to Salesforce Service Cloud.</p>
+            <p style={{ color: '#64748b', fontSize: 13 }}>Submit a case directly to Salesforce Service Cloud, or email us at <a href="mailto:globalgrocery247@gmail.com" style={{ color: '#4f46e5', textDecoration: 'none' }}>globalgrocery247@gmail.com</a>.</p>
           </div>
           <CaseSupportForm />
         </div>

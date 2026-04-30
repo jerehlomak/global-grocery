@@ -11,7 +11,8 @@ export async function GET() {
       label: f.label,
       type: f.type,
       required: !f.nillable && f.createable && !f.defaultedOnCreate, // Strict SF required fields
-      createable: f.createable
+      createable: f.createable,
+      picklistValues: f.picklistValues?.filter((p: any) => p.active).map((p: any) => ({ label: p.label, value: p.value }))
     }))
 
     return NextResponse.json({ success: true, data: fields })

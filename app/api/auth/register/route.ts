@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
       id: result.id, email, firstName, lastName, company,
       accountId: result.id, contactId: finalContactId, isConverted: true, accountType,
       region: region || 'north-america',
+      supportType: dynamicFields.Support_Type__c || dynamicFields.Support_Tier__c || 'Basic'
     }
     return apiSuccess({ user, token: 'sf-jwt-' + result.id }, { source: 'salesforce' })
   } catch (err) {

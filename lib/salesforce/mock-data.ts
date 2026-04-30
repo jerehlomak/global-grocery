@@ -27,6 +27,7 @@ export const MOCK_PRICE_BOOKS: SFPriceBook[] = [
   { Id:"01s000001",Name:"Standard Price Book",IsActive:true,IsStandard:true,Description:"Default price book for North America in USD" },
   { Id:"01s000002",Name:"Europe Price Book",IsActive:true,IsStandard:false,Description:"European market pricing in EUR" },
   { Id:"01s000003",Name:"Africa Price Book",IsActive:true,IsStandard:false,Description:"African market pricing in USD" },
+  { Id:"01s000004",Name:"UK Price Book",IsActive:true,IsStandard:false,Description:"UK market pricing in GBP" },
 ]
 
 export const MOCK_PRICE_BOOK_ENTRIES: SFPriceBookEntry[] = [
@@ -66,6 +67,9 @@ export const MOCK_PRICE_BOOK_ENTRIES: SFPriceBookEntry[] = [
   { Id:"0u0AF010",Product2Id:"01t000010",Product2:MOCK_PRODUCTS[9],PriceBook2Id:"01s000003",UnitPrice:5985,IsActive:true,CurrencyIsoCode:"NGN" },
   { Id:"0u0AF011",Product2Id:"01t000011",Product2:MOCK_PRODUCTS[10],PriceBook2Id:"01s000003",UnitPrice:8985,IsActive:true,CurrencyIsoCode:"NGN" },
   { Id:"0u0AF012",Product2Id:"01t000012",Product2:MOCK_PRODUCTS[11],PriceBook2Id:"01s000003",UnitPrice:5625,IsActive:true,CurrencyIsoCode:"NGN" },
+  { Id:"0u0UK001",Product2Id:"01t000001",Product2:MOCK_PRODUCTS[0],PriceBook2Id:"01s000004",UnitPrice:9.50,IsActive:true,CurrencyIsoCode:"GBP" },
+  { Id:"0u0UK002",Product2Id:"01t000002",Product2:MOCK_PRODUCTS[1],PriceBook2Id:"01s000004",UnitPrice:14.00,IsActive:true,CurrencyIsoCode:"GBP" },
+  { Id:"0u0UK003",Product2Id:"01t000003",Product2:MOCK_PRODUCTS[2],PriceBook2Id:"01s000004",UnitPrice:11.20,IsActive:true,CurrencyIsoCode:"GBP" },
 ]
 
 export const MOCK_OPPORTUNITY_STAGES: SFOpportunityStage[] = [
@@ -85,9 +89,9 @@ export const MOCK_LEADS: SFLead[] = [
 ]
 
 export const MOCK_ACCOUNTS: SFAccount[] = [
-  { Id:"001000001",Name:"Okafor Trading Co.",Type:"Customer",Industry:"Retail",BillingCity:"Lagos",BillingCountry:"Nigeria",AnnualRevenue:500000,OwnerId:"005000001",CreatedDate:"2026-03-10T10:00:00Z" },
-  { Id:"001000002",Name:"Laurent Epicerie",Type:"Customer",Industry:"Food & Beverage",BillingCity:"Paris",BillingCountry:"France",AnnualRevenue:250000,OwnerId:"005000001",CreatedDate:"2026-03-12T10:00:00Z" },
-  { Id:"001000003",Name:"Meridian Foods Inc.",Type:"Customer",Industry:"Distribution",BillingCity:"New York",BillingCountry:"USA",AnnualRevenue:1200000,OwnerId:"005000001",CreatedDate:"2026-02-20T10:00:00Z" },
+  { Id:"001000001",Name:"Okafor Trading Co.",Type:"Customer",Industry:"Retail",BillingCity:"Lagos",BillingCountry:"Nigeria",AnnualRevenue:500000,OwnerId:"005000001",CreatedDate:"2026-03-10T10:00:00Z", ...({ Support_Tier__c: 'Premium', Support_Type__c: 'Premium' } as any) },
+  { Id:"001000002",Name:"Laurent Epicerie",Type:"Customer",Industry:"Food & Beverage",BillingCity:"Paris",BillingCountry:"France",AnnualRevenue:250000,OwnerId:"005000001",CreatedDate:"2026-03-12T10:00:00Z", ...({ Support_Tier__c: 'Basic', Support_Type__c: 'Basic' } as any) },
+  { Id:"001000003",Name:"Meridian Foods Inc.",Type:"Customer",Industry:"Distribution",BillingCity:"New York",BillingCountry:"USA",AnnualRevenue:1200000,OwnerId:"005000001",CreatedDate:"2026-02-20T10:00:00Z", ...({ Support_Tier__c: 'Premium', Support_Type__c: 'Premium' } as any) },
 ]
 
 export const MOCK_CONTACTS: SFContact[] = [
@@ -147,10 +151,11 @@ export function getMockEntriesForPriceBook(priceBookId: string) {
 }
 
 export function getMockPriceBookByRegion(region: string) {
-  const regionMap: Record<string, string> = {
-    "africa": "01s000003",
-    "europe": "01s000002",
-    "north-america": "01s000001",
-  }
+    const regionMap: Record<string, string> = {
+      "africa": "01s000003",
+      "europe": "01s000002",
+      "GBP": "01s000004",
+      "north-america": "01s000001",
+    }
   return MOCK_PRICE_BOOKS.find(pb => pb.Id === regionMap[region])
 }

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // LIVE SF: Look up Contact by email (Works for B2B proxy contacts & B2C Person Contacts)
     const contactResult = await sfQuery<any>(
-      `SELECT Id, FirstName, LastName, Email, AccountId, Account.IsPersonAccount, Account.Name FROM Contact WHERE Email = '${email}' LIMIT 1`
+      `SELECT Id, FirstName, LastName, Email, AccountId, Account.IsPersonAccount, Account.Name, Account.Support_Type__c, Account.Support_Tier__c FROM Contact WHERE Email = '${email}' LIMIT 1`
     )
 
     if (contactResult.totalSize === 0) return apiError('Invalid credentials', 401)
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
       company: contact.Account?.Name || '',
       isConverted: true,
       accountType: isB2C ? 'b2c' : 'b2b',
+      supportType: contact.Account?.Support_Type__c || contact.Account?.Support_Tier__c || 'Basic'
     }
     console.log('[Login] Resolved user:', { accountId: user.accountId, contactId: user.contactId, company: user.company })
     return apiSuccess({ user, token: 'sf-jwt-' + contact.Id }, { source: 'salesforce' })

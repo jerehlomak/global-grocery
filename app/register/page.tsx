@@ -26,7 +26,19 @@ export default function RegisterPage() {
         if (json.success && json.data) {
           // Only extract non-standard fields that might be strict required like a custom "TIN__c"
           const required = json.data.filter((f: any) => f.required && !['Name', 'FirstName', 'LastName', 'Phone', 'PersonEmail'].includes(f.name))
-          setDynamicFields(required)
+          
+          // Also fetch the support type field requested
+          const supportTypeField = json.data.find((f: any) => 
+            (f.name.toLowerCase().includes('support_type') || f.name.toLowerCase().includes('support_tier') || f.label.toLowerCase().includes('support')) 
+            && f.createable
+          )
+          
+          let dynamic = [...required]
+          if (supportTypeField && !dynamic.find(f => f.name === supportTypeField.name)) {
+            dynamic.push(supportTypeField)
+          }
+          
+          setDynamicFields(dynamic)
         }
       })
       .catch(console.error)
@@ -94,8 +106,18 @@ export default function RegisterPage() {
 
           {/* Render dynamic Salesforce fields */}
           {dynamicFields.length > 0 && dynamicFields.map((field) => (
-             <input key={field.name} placeholder={field.label} required={field.required} value={dynamicValues[field.name] || ''} onChange={e => setDynamicValues({...dynamicValues, [field.name]: e.target.value})}
-               style={{ width: '100%', background: '#f1f5f9', border: '1px solid transparent', borderRadius: 12, padding: '12px 16px', color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = '#4f46e5'} onBlur={e => e.currentTarget.style.borderColor = 'transparent'} />
+             field.picklistValues && field.picklistValues.length > 0 ? (
+               <select key={field.name} required={field.required} value={dynamicValues[field.name] || ''} onChange={e => setDynamicValues({...dynamicValues, [field.name]: e.target.value})}
+                 style={{ width: '100%', background: '#f1f5f9', border: '1px solid transparent', borderRadius: 12, padding: '12px 16px', color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = '#4f46e5'} onBlur={e => e.currentTarget.style.borderColor = 'transparent'}>
+                 <option value="" disabled>Select {field.label}</option>
+                 {field.picklistValues.map((p: any) => (
+                   <option key={p.value} value={p.value}>{p.label}</option>
+                 ))}
+               </select>
+             ) : (
+               <input key={field.name} placeholder={field.label} required={field.required} value={dynamicValues[field.name] || ''} onChange={e => setDynamicValues({...dynamicValues, [field.name]: e.target.value})}
+                 style={{ width: '100%', background: '#f1f5f9', border: '1px solid transparent', borderRadius: 12, padding: '12px 16px', color: '#0f172a', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.currentTarget.style.borderColor = '#4f46e5'} onBlur={e => e.currentTarget.style.borderColor = 'transparent'} />
+             )
           ))}
 
           <p style={{ fontSize: 12, color: '#64748b', textAlign: 'center', margin: '8px 0' }}>Creating an account will generate a new Account record in Salesforce.</p>

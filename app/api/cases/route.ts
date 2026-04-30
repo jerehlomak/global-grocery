@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { subject, description, priority = 'Medium', origin = 'Web', type, contactId, accountId } = body
+    const { subject, description, priority = 'Medium', origin = 'Web', type, contactId, accountId, supportTier } = body
     if (!subject) return apiError('subject is required')
 
     if (isMockMode()) {
@@ -44,7 +44,38 @@ export async function POST(request: NextRequest) {
       return apiSuccess(newCase, { source: 'mock' })
     }
 
-    const result = await sfCreate('Case', { Subject: subject, Description: description, Priority: priority, Origin: origin, Type: type, ContactId: contactId, AccountId: accountId })
+    const payload: any = { 
+      Subject: subject, 
+      Description: description, 
+      Priority: priority, 
+      Origin: origin, 
+      Type: type, 
+      ContactId: contactId, 
+      AccountId: accountId 
+    }
+
+    // If support tier is explicitly passed, map it to a custom field so Salesforce logic can use it
+    if (supportTier) {
+      payload.Support_Tier__c = supportTier;
+      payload.Support_Type__c = supportTier;
+    }
+
+    let result;
+    try {
+      result = await sfCreate('Case', payload)
+    } catch (createErr: any) {
+      // Graceful fallback if the custom support fields don't exist in the org
+      if (createErr.message && createErr.message.includes("No such column")) {
+        delete payload.Support_Tier__c;
+        delete payload.Support_Type__c;
+        result = await sfCreate('Case', payload);
+      } else {
+        throw createErr;
+      }
+    }
     return apiSuccess({ id: result.id, success: result.success }, { source: 'salesforce' })
-  } catch (err) { return apiError('Failed to create case', 500) }
+  } catch (err: any) { 
+    console.error('[POST /api/cases] Error:', err.message || err)
+    return apiError('Failed to create case: ' + (err.message || 'Unknown error'), 500) 
+  }
 }

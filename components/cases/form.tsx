@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle2, User, Mail, Phone, FileText, AlignLeft } from 'lucide-react'
+import { Send, CheckCircle2, User, Mail, Phone, FileText, AlignLeft, Loader2 } from 'lucide-react'
+import { useAuthStore } from '@/lib/store/authStore'
+import { createCase } from '@/services/caseService'
 
 const SF_ACTION = 'https://webto.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8&orgId=00Dd200000eNvL7'
 
@@ -52,9 +54,18 @@ function Field({ id, label, icon, children }: {
 }
 
 export default function CaseSupportForm() {
-  const [fields, setFields] = useState(INIT)
+  const { user } = useAuthStore()
+  const [fields, setFields] = useState({
+    name: user ? `${user.firstName} ${user.lastName}` : '',
+    email: user?.email || '',
+    phone: '',
+    subject: '',
+    description: ''
+  })
   const [focused, setFocused] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const set = (key: keyof typeof INIT) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -65,12 +76,31 @@ export default function CaseSupportForm() {
       ? { borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.12)', background: '#fff' }
       : {}
 
-  const handleSubmit = () => {
-    // Optimistically clear & show success before Salesforce redirect
-    setTimeout(() => {
-      setFields(INIT)
+  const handleSubmit = async (e: React.FormEvent) => {
+    // If not logged in, let standard Web-to-Case POST happen (or we could still proxy it)
+    if (!user) return; 
+
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      await createCase({
+        subject: fields.subject,
+        description: fields.description,
+        contactId: user.contactId,
+        accountId: user.accountId,
+        // We can also pass the support type as a custom field if the org expects it for Entitlement selection
+        // @ts-ignore
+        supportTier: user.supportType || 'Basic'
+      })
+      setFields({ ...fields, subject: '', description: '' })
       setSubmitted(true)
-    }, 300)
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit case')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (submitted) {
@@ -122,14 +152,25 @@ export default function CaseSupportForm() {
     <motion.form
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      action={SF_ACTION}
-      method="POST"
+      action={!user ? SF_ACTION : undefined}
+      method={!user ? "POST" : undefined}
       onSubmit={handleSubmit}
       style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
     >
+      {error && <div style={{ background: '#fef2f2', color: '#b91c1c', padding: 12, borderRadius: 8, fontSize: 13, textAlign: 'center', border: '1px solid #fecaca' }}>{error}</div>}
       {/* Salesforce hidden fields */}
       <input type="hidden" name="orgid" value="00Dd200000eNvL7" />
       <input type="hidden" name="retURL" value="https://global-grocery.vercel.app" />
+      
+      {/* If logged in, pass existing SF identifiers for Web-to-Case fallback or API */}
+      {user && (
+        <>
+          <input type="hidden" name="external_id" value={user.id} />
+          {/* Custom field IDs for Entitlement logic usually look like "00N..." */}
+          <input type="hidden" name="account_id" value={user.accountId} />
+          <input type="hidden" name="contact_id" value={user.contactId} />
+        </>
+      )}
 
       {/* Contact Name */}
       <Field id="case_name" label="Contact Name" icon={<User size={15} />}>
@@ -203,20 +244,22 @@ export default function CaseSupportForm() {
       {/* Submit */}
       <motion.button
         type="submit"
+        disabled={loading}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         style={{
           background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
           color: 'white', border: 'none', borderRadius: 10,
-          padding: '13px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+          padding: '13px 20px', fontSize: 15, fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
           display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
           marginTop: 4, fontFamily: 'inherit',
           boxShadow: '0 4px 15px rgba(79,70,229,0.35)',
           letterSpacing: '0.02em',
+          opacity: loading ? 0.7 : 1
         }}
       >
-        <Send size={16} />
-        Submit Case to Salesforce
+        {loading ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
+        {loading ? 'Submitting...' : 'Submit Case to Salesforce'}
       </motion.button>
     </motion.form>
   )

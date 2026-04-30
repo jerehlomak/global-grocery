@@ -71,7 +71,8 @@ export async function GET(request: NextRequest) {
       const currency =
         priceBook.Id === '01s000002' ? 'EUR' :
           priceBook.Id === '01s000003' ? 'NGN' :
-            'USD'
+            priceBook.Id === '01s000004' ? 'GBP' :
+              'USD'
 
       let entries = getMockEntriesForPriceBook(priceBook.Id)
 

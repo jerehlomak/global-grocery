@@ -1,6 +1,6 @@
 import type { SFProduct, SFPriceBookEntry } from "./salesforce"
 
-export type Region = "USD" | "EUR" | "NGN"
+export type Region = "USD" | "EUR" | "NGN" | "GBP"
 
 export interface RegionConfig {
   id: Region
@@ -31,6 +31,13 @@ export const REGIONS: RegionConfig[] = [
     currency: "NGN",
     currencySymbol: "₦",
     flag: "🇳🇬",
+  },
+  {
+    id: "GBP",
+    label: "British Pound",
+    currency: "GBP",
+    currencySymbol: "£",
+    flag: "🇬🇧",
   },
 ]
 

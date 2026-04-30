@@ -32,6 +32,7 @@ export default function Footer() {
             {['Help Center', 'Contact Us', 'Privacy Policy', 'Terms of Service'].map(l => (
               <Link key={l} href="/help" style={{ display: 'block', color: '#94a3b8', fontSize: 13, marginBottom: 10, textDecoration: 'none' }}>{l}</Link>
             ))}
+            <a href="mailto:globalgrocery247@gmail.com" style={{ display: 'block', color: '#4f46e5', fontSize: 13, marginBottom: 10, textDecoration: 'none', fontWeight: 500 }}>globalgrocery247@gmail.com</a>
           </div>
         </div>
         <div className="mobile-col mobile-stack" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

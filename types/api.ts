@@ -48,6 +48,7 @@ export interface AuthUser {
   accountType: "b2c" | "b2b"
   leadScore?: number
   region?: string
+  supportType?: string
 }
 
 export interface SessionToken {
