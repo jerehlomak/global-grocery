@@ -31,6 +31,7 @@ export interface RegisterRequest {
   campaignId?: string
   leadSource?: string
   accountType?: "b2c" | "b2b"
+  [key: string]: any
 }
 
 export interface AuthUser {
