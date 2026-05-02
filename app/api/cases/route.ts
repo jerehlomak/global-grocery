@@ -80,7 +80,21 @@ export async function POST(request: NextRequest) {
     try {
       result = await attemptCreate(payload);
     } catch (createErr: any) {
-      if (createErr.message && createErr.message.includes("INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY")) {
+      const errMsg = createErr.message || "";
+      
+      // Check for Flow/Process failures related to Queue assignments (Common in misconfigured orgs)
+      if (errMsg.includes("CANNOT_EXECUTE_FLOW_TRIGGER") || errMsg.includes("INVALID_OPERATION: Queue not associated with this SObject type")) {
+        console.warn('[/api/cases] Flow trigger failed. Retrying without custom support fields...', errMsg);
+        const retryPayload = { ...payload };
+        delete retryPayload.Support_Tier__c;
+        delete retryPayload.Support_Type__c;
+        try {
+          result = await sfCreate('Case', retryPayload);
+        } catch (retryErr: any) {
+          throw retryErr; // If it still fails, we can't do much more
+        }
+      } 
+      else if (errMsg.includes("INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY")) {
         // Fallback: Remove ContactId and retry
         delete payload.ContactId;
         try {

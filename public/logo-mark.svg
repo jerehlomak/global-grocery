@@ -1,0 +1,18 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="200" cy="200" r="160" fill="#F0EFFF" />
+  
+  <!-- Globe Mark -->
+  <circle cx="200" cy="200" r="140" stroke="#3B3B98" stroke-width="8" />
+  <path d="M60 200H340" stroke="#3B3B98" stroke-width="8" stroke-linecap="round" />
+  <path d="M80 130H320" stroke="#3B3B98" stroke-width="8" stroke-linecap="round" />
+  <path d="M80 270H320" stroke="#3B3B98" stroke-width="8" stroke-linecap="round" />
+  
+  <!-- Vertical Curves -->
+  <path d="M200 60C270 100 270 300 200 340" stroke="#3B3B98" stroke-width="8" stroke-linecap="round" />
+  <path d="M200 60C130 100 130 300 200 340" stroke="#3B3B98" stroke-width="8" stroke-linecap="round" />
+  
+  <!-- The Organic 'Petal' Shapes -->
+  <path d="M310 120C320 110 350 100 360 130C370 160 330 180 320 170C310 160 310 120 310 120Z" fill="#3B3B98" />
+  <path d="M90 280C80 290 50 300 40 270C30 240 70 220 80 230C90 240 90 280 90 280Z" fill="#3B3B98" />
+</svg>

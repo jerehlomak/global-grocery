@@ -66,11 +66,12 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: {
         }
         .db-sidebar-logo-mark {
           width: 32px; height: 32px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          font-size: 14px; font-weight: 800; color: white;
           flex-shrink: 0;
+        }
+        .db-sidebar-logo-mark img {
+          width: 100%; height: 100%;
+          object-fit: contain;
         }
         .db-sidebar-logo-text {
           font-size: 15px; font-weight: 700; color: white;
@@ -158,7 +159,9 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: {
         {/* Logo — click to go home */}
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div className="db-sidebar-logo">
-            <div className="db-sidebar-logo-mark">G</div>
+            <div className="db-sidebar-logo-mark">
+              <img src="/logo-mark.svg" alt="G" />
+            </div>
             <span className="db-sidebar-logo-text">GlobalGrocery</span>
           </div>
         </Link>
