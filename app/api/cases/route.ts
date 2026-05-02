@@ -61,14 +61,39 @@ export async function POST(request: NextRequest) {
     }
 
     let result;
+    
+    // Helper to try creation and handle custom fields gracefully
+    const attemptCreate = async (currentPayload: any) => {
+      try {
+        return await sfCreate('Case', currentPayload);
+      } catch (err: any) {
+        if (err.message && err.message.includes("No such column")) {
+          const fallbackPayload = { ...currentPayload };
+          delete fallbackPayload.Support_Tier__c;
+          delete fallbackPayload.Support_Type__c;
+          return await sfCreate('Case', fallbackPayload);
+        }
+        throw err;
+      }
+    };
+
     try {
-      result = await sfCreate('Case', payload)
+      result = await attemptCreate(payload);
     } catch (createErr: any) {
-      // Graceful fallback if the custom support fields don't exist in the org
-      if (createErr.message && createErr.message.includes("No such column")) {
-        delete payload.Support_Tier__c;
-        delete payload.Support_Type__c;
-        result = await sfCreate('Case', payload);
+      if (createErr.message && createErr.message.includes("INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY")) {
+        // Fallback: Remove ContactId and retry
+        delete payload.ContactId;
+        try {
+          result = await attemptCreate(payload);
+        } catch (retryErr: any) {
+          if (retryErr.message && retryErr.message.includes("INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY")) {
+            // Fallback 2: Remove AccountId as well
+            delete payload.AccountId;
+            result = await attemptCreate(payload);
+          } else {
+            throw retryErr;
+          }
+        }
       } else {
         throw createErr;
       }

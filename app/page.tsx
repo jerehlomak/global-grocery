@@ -117,21 +117,21 @@ export default function HomePage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
           {familiesLoading
             ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} style={{ background: '#f1f5f9', borderRadius: 16, height: 100, animation: 'pulse 1.5s ease-in-out infinite' }} />
-              ))
+              <div key={i} style={{ background: '#f1f5f9', borderRadius: 16, height: 100, animation: 'pulse 1.5s ease-in-out infinite' }} />
+            ))
             : families.map((name, i) => (
-                <motion.div key={name} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }} whileHover={{ scale: 1.05 }}>
-                  <Link href={'/products?family=' + encodeURIComponent(name)} style={{ textDecoration: 'none' }}>
-                    <div
-                      style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '24px 16px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(79,70,229,0.12)' }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)' }}
-                    >
-                      <p style={{ color: '#1e293b', fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{name}</p>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))
+              <motion.div key={name} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }} whileHover={{ scale: 1.05 }}>
+                <Link href={'/products?family=' + encodeURIComponent(name)} style={{ textDecoration: 'none' }}>
+                  <div
+                    style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '24px 16px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(79,70,229,0.12)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)' }}
+                  >
+                    <p style={{ color: '#1e293b', fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{name}</p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))
           }
         </div>
       </section>
@@ -168,7 +168,7 @@ export default function HomePage() {
             </div>
           </div>
         </motion.div>
-        
+
         {campaignsLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
             {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -272,8 +272,8 @@ export default function HomePage() {
               <span style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600 }}>Sales Cloud Pipeline</span>
             </div>
             <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: 20 }}>
-              Become a{' '}
-              <span style={{ background: 'linear-gradient(135deg, #a78bfa, #7c3aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Partner</span>
+              Contact{' '}
+              <span style={{ background: 'linear-gradient(135deg, #a78bfa, #7c3aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Us</span>
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, lineHeight: 1.8, maxWidth: 460, marginBottom: 36 }}>
               Get access to exclusive bulk pricing, regional distribution rights, and a dedicated account manager — all powered by our Salesforce Sales Cloud.
@@ -311,13 +311,13 @@ export default function HomePage() {
 
         </div>
       </section>
-      
 
-      <CampaignSubscribeModal 
-        isOpen={activeModal !== null} 
-        onClose={() => setActiveModal(null)} 
-        campaignId={activeModal?.id || ''} 
-        campaignName={activeModal?.name || ''} 
+
+      <CampaignSubscribeModal
+        isOpen={activeModal !== null}
+        onClose={() => setActiveModal(null)}
+        campaignId={activeModal?.id || ''}
+        campaignName={activeModal?.name || ''}
       />
     </div>
   )

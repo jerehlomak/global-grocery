@@ -43,9 +43,20 @@ export async function POST(request: NextRequest) {
     }
 
     // LIVE SF: Look up Contact by email (Works for B2B proxy contacts & B2C Person Contacts)
-    const contactResult = await sfQuery<any>(
-      `SELECT Id, FirstName, LastName, Email, AccountId, Account.IsPersonAccount, Account.Name, Account.Support_Type__c, Account.Support_Tier__c FROM Contact WHERE Email = '${email}' LIMIT 1`
-    )
+    let contactResult;
+    try {
+      contactResult = await sfQuery<any>(
+        `SELECT Id, FirstName, LastName, Email, AccountId, Account.IsPersonAccount, Account.Name, Account.Support_Type__c, Account.Support_Tier__c FROM Contact WHERE Email = '${email}' LIMIT 1`
+      )
+    } catch (queryErr: any) {
+      if (queryErr.message && queryErr.message.includes('INVALID_FIELD')) {
+        contactResult = await sfQuery<any>(
+          `SELECT Id, FirstName, LastName, Email, AccountId, Account.IsPersonAccount, Account.Name FROM Contact WHERE Email = '${email}' LIMIT 1`
+        )
+      } else {
+        throw queryErr;
+      }
+    }
 
     if (contactResult.totalSize === 0) return apiError('Invalid credentials', 401)
 
